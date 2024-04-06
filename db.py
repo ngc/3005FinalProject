@@ -113,5 +113,61 @@ class DBConnection:
         cur.close()
         return result is not None
 
+    def get_user_id(self, email):
+        cur = self.conn.cursor()
+        cur.execute("SELECT member_id FROM Member WHERE email = %s", (email,))
+        result = cur.fetchone()
+        cur.close()
+        return result[0]
+
+    def register_user(self, email, first_name, last_name, age, weight, height):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO Metrics (age, weight, height) VALUES (%s, %s, %s) RETURNING metric_id",
+            (age, weight, height),
+        )
+        metric_id = cur.fetchone()[0]
+        cur.execute(
+            "INSERT INTO Member (email, first_name, last_name, metric_id) VALUES (%s, %s, %s, %s)",
+            (email, first_name, last_name, metric_id),
+        )
+        cur.close()
+
+    def update_user(self, email, first_name, last_name, age, weight, height):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT metric_id FROM Member WHERE email = %s",
+            (email,),
+        )
+        metric_id = cur.fetchone()[0]
+        cur.execute(
+            "UPDATE Metrics SET age = %s, weight = %s, height = %s WHERE metric_id = %s",
+            (age, weight, height, metric_id),
+        )
+        cur.execute(
+            "UPDATE Member SET first_name = %s, last_name = %s WHERE email = %s",
+            (first_name, last_name, email),
+        )
+        cur.close()
+
+    def get_user_dashboard(self, email):
+        # returns a string with all the user's information
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT first_name, last_name, age, weight, height FROM Member JOIN Metrics ON Member.metric_id = Metrics.metric_id WHERE email = %s",
+            (email,),
+        )
+
+        result = cur.fetchone()
+        cur.close()
+        return result
+
+    def does_trainer_exist(self, id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Trainer WHERE trainer_id = %s", (id,))
+        result = cur.fetchone()
+        cur.close()
+        return result is not None
+
     def get_connection(self):
         return self.conn
