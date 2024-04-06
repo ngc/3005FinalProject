@@ -310,3 +310,216 @@ def updateProfile(conn):
         cur.close()
     except Error as e:
         print(e)
+
+
+def manageMemberSchedule(conn, member_id):
+    print(
+        "Would you like to schedule a personal training session or a group fitness class? (Enter 'personal' or 'group')"
+    )
+    option = input()
+
+    if option == "personal":
+        try:
+            # show available trainers
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM Trainer")
+            rows = cur.fetchall()
+            for row in rows:
+                print(row[0], row[1], "generally works", row[2], "-", row[3])
+            cur.close()
+            print("Enter the trainer's ID:")
+            trainer_id = input()
+
+            # look in teaches table for trainer's availability
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM Teaches WHERE trainer_id = %s", (trainer_id,))
+            rows = cur.fetchall()
+            for row in rows:
+                print("Booked from ", row[2], " - ", row[3])
+
+            print("Enter the start time:")
+            start_time = input()
+            print("Enter the end time:")
+            end_time = input()
+
+            print("Enter the room's ID:")
+            room_id = input()
+            # Create cursor
+            cur = conn.cursor()
+            # Execute SQL query
+            cur.execute(
+                "INSERT INTO PersonalTrainingSession (room_id) VALUES (%s)", (room_id)
+            )
+            cur.execute(
+                "SELECT personal_training_session_id FROM PersonalTrainingSession WHERE room_id = %s",
+                (room_id,),
+            )
+            personal_training_session_id = cur.fetchone()[0]
+            cur.execute(
+                "INSERT INTO Attends (member_id, personal_training_session_id) VALUES (%s, %s)",
+                (member_id, personal_training_session_id),
+            )
+            cur.execute(
+                "INSERT INTO Teaches (trainer_id, personal_training_session_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
+                (trainer_id, personal_training_session_id, start_time, end_time),
+            )
+            cur.close()
+        except Error as e:
+            print(e)
+    elif option == "group":
+        # show available group fitness classes
+        try:
+            cur = conn.cursor()
+            cur.execute("SELECT * FROM GroupFitnessClass")
+            rows = cur.fetchall()
+            for row in rows:
+                print(row[0], row[1])
+            cur.close()
+        except Error as e:
+            print(e)
+
+        # get group fitness class ID
+        print("Enter the group fitness class ID:")
+        group_fitness_class_id = input()
+
+        try:
+            # Create cursor
+            cur = conn.cursor()
+            # Execute SQL query
+            cur.execute(
+                "INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (%s, %s)",
+                (member_id, group_fitness_class_id),
+            )
+            cur.close()
+        except Error as e:
+            print(e)
+
+
+def manageTrainerSchedule(conn, trainer_id):
+    # get new start and end time
+    print("Enter the new start time:")
+    start_time = input()
+    print("Enter the new end time:")
+    end_time = input()
+
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute(
+            "UPDATE Trainer SET start_time = %s, end_time = %s WHERE trainer_id = %s",
+            (start_time, end_time, trainer_id),
+        )
+        cur.close()
+    except Error as e:
+        print(e)
+
+
+def viewMemberProfile(conn, first_name, last_name):
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute(
+            "SELECT * FROM Member WHERE first_name = %s AND last_name = %s",
+            (first_name, last_name),
+        )
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2], row[3])
+        cur.close()
+    except Error as e:
+        print(e)
+
+
+# Create a new room or switch which room a fitness class takes place in
+def manageRoomBooking(conn):
+    print(
+        "Would you like to create a new room or switch a fitness class to a different room? (Enter 'create' or 'switch')"
+    )
+    option = input()
+
+    if option == "create":
+        print("Enter the room name:")
+        room_name = input()
+        print("Enter the room number:")
+        room_number = input()
+
+        try:
+            # Create cursor
+            cur = conn.cursor()
+            # Execute SQL query
+            cur.execute(
+                "INSERT INTO Room (room_name, room_number) VALUES (%s, %s)",
+                (room_name, room_number),
+            )
+            cur.close()
+        except Error as e:
+            print(e)
+    elif option == "switch":
+        print("Enter the fitness class ID:")
+        group_fitness_class_id = input()
+        print("Enter the new room ID:")
+        room_id = input()
+
+        try:
+            # Create cursor
+            cur = conn.cursor()
+            # Execute SQL query
+            cur.execute(
+                "UPDATE Uses SET room_id = %s WHERE group_fitness_class_id = %s",
+                (room_id, group_fitness_class_id),
+            )
+            cur.close()
+        except Error as e:
+            print(e)
+
+
+def maintainEquipment(conn, equipment_id):
+    print("Enter the new quality of the equipment:")
+    quality = input()
+
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute(
+            "UPDATE Equipment SET quality = %s WHERE equipment_id = %s",
+            (quality, equipment_id),
+        )
+        cur.close()
+    except Error as e:
+        print(e)
+
+
+def updateClassSchedule(conn):
+    # show all group fitness classes
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM GroupFitnessClass")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1])
+        cur.close()
+    except Error as e:
+        print(e)
+
+    # get fitness class
+    print("Enter the fitness class ID:")
+    group_fitness_class_id = input()
+    # get new start and end time
+    print("Enter the new start time:")
+    start_time = input()
+    print("Enter the new end time:")
+    end_time = input()
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute(
+            "UPDATE Uses SET start_time = %s, end_time = %s WHERE group_fitness_class_id = %s",
+            (start_time, end_time, group_fitness_class_id),
+        )
+        cur.close()
+    except Error as e:
+        print(e)
