@@ -100,3 +100,127 @@ def deleteClubDatabase(conn):
         print("Finished Deleting Club Database")
     except Error as e:
         print(e)
+
+
+def init(conn):
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute("INSERT INTO Metrics (age, weight, height) VALUES (20, 150, 5.5)")
+        # get metric id
+        cur.execute("SELECT metric_id FROM Metrics")
+        rows = cur.fetchall()
+        metric_id = rows[0][0]
+        cur.execute(
+            "INSERT INTO Member (email, first_name, last_name, metric_id) VALUES (%s, %s, %s, %s)",
+            ("AshSri@cmail.carleton.ca", "Ash", "Sri", str(metric_id)),
+        )
+        cur.execute(
+            "INSERT INTO Equipment (equipment_name, quality) VALUES ('Treadmill', 100)"
+        )
+        cur.execute(
+            "INSERT INTO ExerciseRoutine (repititions, sets, equipment_id) VALUES (10, 3, 1)"
+        )
+        cur.execute("INSERT INTO PersonalFitnessGoal (weight, time) VALUES (140, 60)")
+        cur.execute(
+            "INSERT INTO FitnessAchievement (achievement) VALUES ('Ran 5 miles')"
+        )
+        cur.execute(
+            "INSERT INTO Trainer (first_name, last_name, start_time, end_time) VALUES ('John', 'Doe', '08:00:00', '10:00:00')"
+        )
+        cur.execute("INSERT INTO Room (room_name, room_number) VALUES ('Room1', 1)")
+        cur.execute("INSERT INTO PersonalTrainingSession (room_id) VALUES (1)")
+        cur.execute("INSERT INTO GroupFitnessClass (name) VALUES ('Yoga')")
+        cur.execute(
+            "INSERT INTO Performs (member_id, exercise_routine_id) VALUES (1, 1)"
+        )
+        cur.execute("INSERT INTO Has (member_id, goal_id) VALUES (1, 1)")
+        cur.execute("INSERT INTO Achieved (member_id, achievement_id) VALUES (1, 1)")
+        cur.execute(
+            "INSERT INTO Teaches (trainer_id, personal_training_session_id, start_time, end_time) VALUES (1, 1, '08:00:00', '10:00:00')"
+        )
+        cur.execute(
+            "INSERT INTO Attends (member_id, personal_training_session_id) VALUES (1, 1)"
+        )
+        cur.execute(
+            "INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (1, 1)"
+        )
+        cur.execute(
+            "INSERT INTO Uses (group_fitness_class_id, room_id, start_time, end_time) VALUES (1, 1, '08:00:00', '10:00:00')"
+        )
+        cur.execute(
+            "INSERT INTO Employs (exercise_routine_id, equipment_id) VALUES (1, 1)"
+        )
+        cur.close()
+    except Error as e:
+        print(e)
+
+
+def showAllTables(conn):
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        print("Metrics Table:")
+        cur.execute("SELECT * FROM Metrics")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2], row[3])
+
+        print("\nMember Table:")
+        cur.execute("SELECT * FROM Member")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2], row[3], row[4])
+
+        print("\nEquipment Table:")
+        cur.execute("SELECT * FROM Equipment")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2])
+
+        print("\nExerciseRoutine Table:")
+        cur.execute("SELECT * FROM ExerciseRoutine")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2], row[3])
+
+        print("\nPersonalFitnessGoal Table:")
+        cur.execute("SELECT * FROM PersonalFitnessGoal")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2])
+
+        print("\nFitnessAchievement Table:")
+        cur.execute("SELECT * FROM FitnessAchievement")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1])
+
+        print("\nTrainer Table:")
+        cur.execute("SELECT * FROM Trainer")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2], row[3], row[4])
+
+        print("\nRoom Table:")
+        cur.execute("SELECT * FROM Room")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1], row[2])
+
+        print("\nPersonalTrainingSession Table:")
+        cur.execute("SELECT * FROM PersonalTrainingSession")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1])
+
+        print("\nGroupFitnessClass Table:")
+        cur.execute("SELECT * FROM GroupFitnessClass")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[0], row[1])
+        cur.close()
+    except Error as e:
+        print(e)
