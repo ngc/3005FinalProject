@@ -224,3 +224,17 @@ def showAllTables(conn):
         cur.close()
     except Error as e:
         print(e)
+
+
+def showMembers(conn):
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute("SELECT * FROM Member")
+        rows = cur.fetchall()
+        for row in rows:
+            print(row[2], row[3], "with email", row[1])
+        cur.close()
+    except Error as e:
+        print(e)
