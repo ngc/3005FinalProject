@@ -69,3 +69,34 @@ def createClubDatabase(conn):
         print("Finished Creating Club Database")
     except Error as e:
         print(e)
+
+
+# deletes the student database
+def deleteClubDatabase(conn):
+    try:
+        # Create cursor
+        cur = conn.cursor()
+        print("Starting Deleting Club Database")
+        # Drop tables in reverse
+        cur.execute("DROP TABLE IF EXISTS Employs")
+        cur.execute("DROP TABLE IF EXISTS Uses")
+        cur.execute("DROP TABLE IF EXISTS Frequents")
+        cur.execute("DROP TABLE IF EXISTS Attends")
+        cur.execute("DROP TABLE IF EXISTS Teaches")
+        cur.execute("DROP TABLE IF EXISTS Achieved")
+        cur.execute("DROP TABLE IF EXISTS Has")
+        cur.execute("DROP TABLE IF EXISTS Performs")
+        cur.execute("DROP TABLE IF EXISTS GroupFitnessClass")
+        cur.execute("DROP TABLE IF EXISTS PersonalTrainingSession")
+        cur.execute("DROP TABLE IF EXISTS Room")
+        cur.execute("DROP TABLE IF EXISTS Trainer")
+        cur.execute("DROP TABLE IF EXISTS FitnessAchievement")
+        cur.execute("DROP TABLE IF EXISTS PersonalFitnessGoal")
+        cur.execute("DROP TABLE IF EXISTS ExerciseRoutine")
+        cur.execute("DROP TABLE IF EXISTS Equipment")
+        cur.execute("DROP TABLE IF EXISTS Member")
+        cur.execute("DROP TABLE IF EXISTS Metrics")
+        cur.close()
+        print("Finished Deleting Club Database")
+    except Error as e:
+        print(e)
