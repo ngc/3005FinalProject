@@ -238,3 +238,75 @@ def showMembers(conn):
         cur.close()
     except Error as e:
         print(e)
+
+
+def registerUser(conn):
+    try:
+        print("What is your first name?")
+        first_name = input()
+        print("What is your last name?")
+        last_name = input()
+        print("What is your email?")
+        email = input()
+        print("What is your age?")
+        age = input()
+        print("What is your weight?")
+        weight = input()
+        print("What is your height?")
+        height = input()
+
+        # Create cursor
+        cur = conn.cursor()
+        # Execute SQL query
+        cur.execute(
+            "INSERT INTO Metrics (age, weight, height) VALUES (%s, %s, %s)",
+            (age, weight, height),
+        )
+        # get metric id
+        cur.execute(
+            "SELECT metric_id FROM Metrics WHERE age = %s AND weight = %s AND height = %s",
+            (age, weight, height),
+        )
+        metric_id = cur.fetchone()[0]
+        cur.execute(
+            "INSERT INTO Member (email, first_name, last_name, metric_id) VALUES (%s, %s, %s, %s)",
+            (email, first_name, last_name, metric_id),
+        )
+
+        cur.close()
+    except Error as e:
+        print(e)
+
+
+def updateProfile(conn):
+    print("Enter your old email:")
+    old_email = input()
+    print("Enter your new email:")
+    new_email = input()
+    print("Enter your new first name:")
+    first_name = input()
+    print("Enter your new last name:")
+    last_name = input()
+    print("Enter your new age:")
+    age = input()
+    print("Enter your new weight:")
+    weight = input()
+    print("Enter your new height:")
+    height = input()
+    try:
+        # Create cursor
+        cur = conn.cursor()
+
+        # update based on old email and get metric_id
+        cur.execute(
+            "UPDATE Member SET email = %s, first_name = %s, last_name = %s WHERE email = %s",
+            (new_email, first_name, last_name, old_email),
+        )
+        cur.execute(
+            "UPDATE Metrics SET age = %s, weight = %s, height = %s WHERE metric_id = (SELECT metric_id FROM Member WHERE email = %s)",
+            (age, weight, height, new_email),
+        )
+
+        cur.close()
+    except Error as e:
+        print(e)
