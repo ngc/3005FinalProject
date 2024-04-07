@@ -101,14 +101,14 @@ class MemberSession:
 
     def display_dashboard(self):
         print("Displaying dashboard")
-        user = self.db.get_user(self.user_id)
+        user = self.db.get_user_dashboard(self.user_id)
         print(user)
 
     def schedule_management(self):
         print("Scheduling management")
         print("1. Schedule personal training session")
         print("2. Schedule group fitness class")
-        user_input = input("Please enter a number: ")
+        user_input = int(input("Please enter a number: "))
 
         if user_input == 1:
             print("Scheduling personal training session")
