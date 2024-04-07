@@ -10,6 +10,7 @@ def main():
     # Database info
     db = DBConnection()
     db.init_db()
+    db.populate_db()
     db.drop_db()
 
 
