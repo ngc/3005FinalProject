@@ -22,19 +22,19 @@ class DBConnection:
         self.conn.autocommit = True
 
     def init_db(self):
-        print("Starting Creating Club Database")
+        print("Starting initializing  Club Database")
         cur = self.conn.cursor()
-        with open('DMLstatements.sql', 'r') as file:
+        with open('DDLstatements.sql', 'r') as file:
             sql = file.read()
             cur.execute(sql)
             self.conn.commit()
 
         cur.close()
-
-    def init_db(self):
-        print("Starting populating  Club Database")
+    
+    def populate_db(self):
+        print("Starting Populating Club Database")
         cur = self.conn.cursor()
-        with open('DDLstatements.sql', 'r') as file:
+        with open('DMLstatements.sql', 'r') as file:
             sql = file.read()
             cur.execute(sql)
             self.conn.commit()
