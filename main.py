@@ -135,6 +135,39 @@ class MemberSession:
             print("Invalid input. Please try again.")
 
 
+class TrainerSession:
+    def __init__(self, db, trainer_id):
+        self.db = db
+        self.trainer_id = trainer_id
+
+    def schedule_management(self):
+        print("Scheduling management")
+        print("1. Set available time")
+        print("2. View member profile")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Setting available time")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.set_trainer_availability(self.trainer_id, start_time, end_time)
+            print("Available time set successfully")
+        elif user_input == 2:
+            print("Viewing member profile")
+            member_id = input("Please enter the member id: ")
+            member = self.db.get_user_dashboard(member_id)
+            print(member)
+        else:
+            print("Invalid input. Please try again.")
+
+    def view_member_profile(self):
+        print("Viewing member profile")
+        member_id = input("Please enter the member id: ")
+        member = self.db.get_user_dashboard(member_id)
+        print(member)
+
+
 def main():
     # Database info
     db = DBConnection()
@@ -253,7 +286,29 @@ def main():
             return
 
     elif current_trainer:
-        pass
+        trainer_session = TrainerSession(db, current_trainer)
+        while True:
+            print("Welcome to the Trainer Dashboard")
+            print("Please select from the following options:")
+            print("1. Schedule Management")
+            print("2. View Member Profile")
+            print("3. Logout")
+
+            user_input = int(input("Please enter a number: "))
+
+            if user_input > 3 or user_input < 1:
+                print("Invalid input. Please try again.")
+            else:
+                break
+
+        if user_input == 1:
+            trainer_session.schedule_management()
+        elif user_input == 2:
+            trainer_session.view_member_profile()
+        else:
+            print("Logging out")
+            current_trainer = None
+            return
     elif current_admin:
         pass
 
