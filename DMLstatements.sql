@@ -2,7 +2,7 @@ INSERT INTO Metrics (age, weight, height) VALUES (25, 150, 130), (30, 180, 180);
 INSERT INTO Member (email, first_name, last_name, metric_id) VALUES ('john.doe@gmail.com', 'John', 'Doe', 1), ('john.lu@cmail.com', 'John', 'Lu', 2);
 INSERT INTO Equipment (equipment_name) VALUES ('Treadmill'), ('Dumbbells');
 INSERT INTO ExerciseRoutine (repititions, sets, equipment_id) VALUES (10, 3, 1), (15, 2, 2);
-INSERT INTO PersonalFitnessGoal (weight, time) VALUES (145, 30), (160.0, 60);
+INSERT INTO PersonalFitnessGoal (time, goal_description) VALUES (30, 'Run 5k'), (60, 'Lose 10 Pounds');
 INSERT INTO FitnessAchievement (achievement) VALUES ('Completed 5k Run'), ('Lost 10 Pounds');
 INSERT INTO Trainer (first_name, last_name) VALUES ('Nathan', 'Coulas'), ('Julie', 'Wechsler');
 INSERT INTO TrainerShifts (trainer_id, scheduled_shifts) VALUES (1, '{"1": {[9,10],[10,11]}, "2": {[9,10],[10,11]}, "5": {[9,10],[10,11], "7": {[9,10],[10,11]}'), (2, '{"5": {[9,10],[10,11]}, "6": {[9,10],[10,11]}, {[9,10],[10,11], "7": {[9,10],[10,11]}');

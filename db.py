@@ -200,9 +200,9 @@ class DBConnection:
             "UPDATE Member SET email = %s, first_name = %s, last_name = %s WHERE member_id = %s",
             (email, first_name, last_name, member_session.user_id),
         )
-            
+
         cur.close()
-    
+
     def update_fitness_goals(self, fitness_goal_id, weight, time):
         cur = self.conn.cursor()
         cur.execute(
@@ -213,7 +213,7 @@ class DBConnection:
 
     def update_health_metrics(self, member_session, age, weight, height):
         cur = self.conn.cursor()
-        #get metric id from the member's email
+        # get metric id from the member's email
         cur.execute(
             "SELECT metric_id FROM Member WHERE member_id = %s",
             (str(member_session.user_id)),
@@ -224,7 +224,6 @@ class DBConnection:
             (age, weight, height, metric_id),
         )
         cur.close()
-
 
     def schedule_personal_training_session(
         self, member_id, trainer_id, room_id, start_time, end_time
@@ -245,9 +244,7 @@ class DBConnection:
         )
         cur.close()
 
-    def schedule_group_fitness_class(
-        self, member_id, group_fitness_class_id
-    ):
+    def schedule_group_fitness_class(self, member_id, group_fitness_class_id):
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (%s, %s)",
@@ -361,8 +358,17 @@ class DBConnection:
                 formatted_user_info += f"\nName: {group[1]}"
                 formatted_user_info += "\n"
 
+        # get fitness goals
+        goals = self.get_all_fitness_goals(id)
+        if goals is not None:
+            formatted_user_info += "\nFitness Goals:"
+            for goal in goals:
+                formatted_user_info += f"\nGoal Description: {goal[2]}"
+                formatted_user_info += f"\nTime: {goal[1]}"
+                formatted_user_info += "\n"
+        else:
+            formatted_user_info += "\nFitness Goals: None"
         return formatted_user_info
-    
 
     def does_trainer_exist(self, id):
         cur = self.conn.cursor()
@@ -370,7 +376,7 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result is not None
-    
+
     def get_trainer_by_day(self, day):
         cur = self.conn.cursor()
         cur.execute("SELECT scheduled_shifts FROM TrainerShifts")
@@ -382,3 +388,102 @@ class DBConnection:
 
     def get_connection(self):
         return self.conn
+
+    def add_fitness_goal(self, user_id, time, goal_description):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO PersonalFitnessGoal (time, goal_description) VALUES (%s, %s) RETURNING goal_id",
+            (time, goal_description),
+        )
+        goal_id = cur.fetchone()[0]
+
+        cur.execute(
+            "INSERT INTO Has (member_id, goal_id) VALUES (%s, %s)",
+            (user_id, goal_id),
+        )
+
+        cur.close()
+
+    def get_all_fitness_goals(self, user_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM Has WHERE member_id = %s",
+            (user_id,),
+        )
+
+        # iterate through all the goals and return a list of tuples
+        result = cur.fetchall()
+        goals = []
+
+        for goal in result:
+            cur.execute(
+                "SELECT * FROM PersonalFitnessGoal WHERE goal_id = %s",
+                (goal[1],),
+            )
+
+            goal_info = cur.fetchone()
+            goals.append(goal_info)
+
+        cur.close()
+
+        return goals
+
+    def add_fitness_achievement(self, user_id, achievement):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO FitnessAchievement (achievement) VALUES (%s) RETURNING achievement_id",
+            (achievement,),
+        )
+        achievement_id = cur.fetchone()[0]
+
+        cur.execute(
+            "INSERT INTO Achieved (member_id, achievement_id) VALUES (%s, %s)",
+            (user_id, achievement_id),
+        )
+
+        cur.close()
+
+    def get_all_fitness_achievements(self, user_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM Achieved WHERE member_id = %s",
+            (user_id,),
+        )
+
+        result = cur.fetchall()
+        achievements = []
+
+        for achievement in result:
+            cur.execute(
+                "SELECT * FROM FitnessAchievement WHERE achievement_id = %s",
+                (achievement[1],),
+            )
+
+            achievement_info = cur.fetchone()
+            achievements.append(achievement_info)
+
+        cur.close()
+
+        return achievements
+
+    def convert_goal_to_achievement(self, user_id, goal_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM Has WHERE member_id = %s AND goal_id = %s",
+            (user_id, goal_id),
+        )
+
+        result = cur.fetchone()
+
+        if result is not None:
+            cur.execute(
+                "DELETE FROM Has WHERE member_id = %s AND goal_id = %s",
+                (user_id, goal_id),
+            )
+
+            cur.execute(
+                "INSERT INTO Achieved (member_id, achievement_id) VALUES (%s, %s)",
+                (user_id, goal_id),
+            )
+
+        cur.close()
