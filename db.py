@@ -1,6 +1,7 @@
 import psycopg2
 from dotenv import load_dotenv
 import os
+import json
 
 load_dotenv()
 
@@ -56,6 +57,7 @@ class DBConnection:
         cur.execute("DROP TABLE IF EXISTS GroupFitnessClass")
         cur.execute("DROP TABLE IF EXISTS PersonalTrainingSession")
         cur.execute("DROP TABLE IF EXISTS Room")
+        cur.execute("DROP TABLE IF EXISTS TrainerShifts")
         cur.execute("DROP TABLE IF EXISTS Trainer")
         cur.execute("DROP TABLE IF EXISTS FitnessAchievement")
         cur.execute("DROP TABLE IF EXISTS PersonalFitnessGoal")
@@ -250,12 +252,22 @@ class DBConnection:
                 formatted_user_info += "\n"
 
         return formatted_user_info
+    
 
     def does_trainer_exist(self, id):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM Trainer WHERE trainer_id = %s", (id,))
         result = cur.fetchone()
         cur.close()
+        return result is not None
+    
+    def get_trainer_by_day(self, day):
+        cur = self.conn.cursor()
+        cur.execute("SELECT scheduled_shifts FROM TrainerShifts")
+        result = cur.fetchall()
+        print(f"the result of this is {result}")
+        cur.close()
+
         return result is not None
 
     def get_connection(self):

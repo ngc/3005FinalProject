@@ -1,4 +1,5 @@
 from db import DBConnection
+import datetime
 
 """
 Member Functions:
@@ -51,6 +52,23 @@ class MemberSession:
 
         if user_input == 1:
             print("Scheduling personal training session")
+            date = input("Please enter the date you would like for your personal training session in the format DAY/MONTH/YEAR: ")
+
+            date_parts = date.split('/')
+            day = int(date_parts[0])
+            month = int(date_parts[1])
+            year = int(date_parts[2])
+
+            weekday = day_of_week(day, month, year)
+            print(f"The date you want to book for is {weekday}")
+            date_obj = datetime.datetime(year, month, day)
+            weekday_num = date_obj.weekday() + 1
+            print(f"The weekday as a number is {weekday_num}")
+            myresult = self.db.get_trainer_by_day(day)
+
+            #print out the trainers that could train them on that day
+
+
             trainer_id = input("Please enter the trainer id: ")
             room_id = input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
@@ -254,6 +272,12 @@ def main():
         pass
 
     return
+
+def day_of_week(day, month, year):
+    date_obj = datetime.datetime(year, month, day)
+    weekday_num = date_obj.weekday()
+    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    return weekdays[weekday_num]
 
 
 if __name__ == "__main__":
