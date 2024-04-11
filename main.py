@@ -77,6 +77,7 @@ class MemberSession:
 def main():
     # Database info
     db = DBConnection()
+    db.drop_db()
     db.init_db()
     db.populate_db()
 
