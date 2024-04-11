@@ -17,4 +17,4 @@ INSERT INTO Attends (member_id, personal_training_session_id) VALUES (1, 1), (2,
 INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (1, 1), (2, 2);
 INSERT INTO Uses (group_fitness_class_id, room_id, start_time, end_time) VALUES (1, 1, '08:00:00', '09:00:00'), (2, 2, '10:00:00', '11:00:00');
 INSERT INTO Employs (exercise_routine_id, equipment_id) VALUES (1, 1), (2, 2);
-
+INSERT INTO PendingBill (member_id, amount) VALUES (1, 100), (2, 200);

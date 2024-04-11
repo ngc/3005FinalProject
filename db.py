@@ -140,6 +140,7 @@ class DBConnection:
         cur = self.conn.cursor()
         print("Starting Deleting Club Database")
         # Drop tables in reverse
+        cur.execute("DROP TABLE IF EXISTS PendingBill")
         cur.execute("DROP TABLE IF EXISTS Employs")
         cur.execute("DROP TABLE IF EXISTS Uses")
         cur.execute("DROP TABLE IF EXISTS Frequents")
@@ -485,5 +486,27 @@ class DBConnection:
                 "INSERT INTO Achieved (member_id, achievement_id) VALUES (%s, %s)",
                 (user_id, goal_id),
             )
+
+        cur.close()
+
+    def get_all_pending_bills(self):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PendingBill JOIN Member ON PendingBill.member_id = Member.member_id"
+        )
+
+        result = cur.fetchall()
+        cur.close()
+
+        return result
+
+    def bill_member(self, email, amount):
+        cur = self.conn.cursor()
+        cur.execute("SELECT member_id FROM Member WHERE email = %s", (email,))
+        member_id = cur.fetchone()[0]
+        cur.execute(
+            "INSERT INTO PendingBill (member_id, amount) VALUES (%s, %s)",
+            (member_id, amount),
+        )
 
         cur.close()

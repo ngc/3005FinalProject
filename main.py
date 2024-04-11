@@ -98,15 +98,37 @@ class AdminSession:
 
     def billing_and_payment_processing(self):
         print("Billing and payment processing")
-        print("1. Process payment")
-        user_input = int(input("Please enter a number: "))
+        print("1. List all pending bills")
+        print("2. Pay a bill")
+        print("3. Bill a member")
 
+        user_input = int(input("Please enter a number: "))
         if user_input == 1:
-            print("Processing payment")
-            user_id = input("Please enter the user id: ")
+            print("Listing all pending bills")
+            pending_bills = self.db.get_all_pending_bills()
+            # [(1, 1, Decimal('100'), 1, 'john.doe@gmail.com', 'John', 'Doe', 1), (2, 2, Decimal('200'), 2, 'john.lu@cmail.com', 'John', 'Lu', 2)]
+            bill_string = ""
+            for bill in pending_bills:
+                bill_string += f"Bill ID: {bill[0]}, Amount: ${bill[2]}, Member: {bill[5]} {bill[6]}\n"
+
+            print(bill_string)
+
+        elif user_input == 2:
+            print("Paying a bill")
+            bill_id = input("Please enter the bill id: ")
+
+            self.db.pay_bill(bill_id)
+            print("Bill paid successfully")
+        elif user_input == 3:
+            print("Billing a member")
+            member_email = input("Please enter the member email: ")
             amount = input("Please enter the amount: ")
 
-            print("Payment processed successfully")
+            self.db.bill_member(member_email, amount)
+            print("Member billed successfully")
+        else:
+            print("Invalid input. Please try again.")
+        print("Billing and payment processing completed")
 
 
 class MemberSession:
@@ -232,13 +254,7 @@ class TrainerSession:
         print(member)
 
 
-def main():
-    # Database info
-    db = DBConnection()
-    db.drop_db()
-    db.init_db()
-    db.populate_db()
-
+def main(db: DBConnection):
     current_user = None
     current_trainer = None
     current_admin = None
@@ -424,4 +440,11 @@ def day_of_week(day, month, year):
 
 
 if __name__ == "__main__":
-    main()
+
+    db = DBConnection()
+    db.drop_db()
+    db.init_db()
+    db.populate_db()
+
+    while True:
+        main(db)
