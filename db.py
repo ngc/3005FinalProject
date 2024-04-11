@@ -93,22 +93,42 @@ class DBConnection:
         )
         cur.close()
 
-    def update_user(self, email, first_name, last_name, age, weight, height):
+    def update_personal_information(self, member_session, email, first_name, last_name):
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT metric_id FROM Member WHERE email = %s",
-            (email,),
+            "SELECT metric_id FROM Member WHERE member_id = %s",
+            (member_session.user_id,),
+        )
+        metric_id = cur.fetchone()[0]
+        cur.execute(
+            "UPDATE Member SET email = %s, first_name = %s, last_name = %s WHERE member_id = %s",
+            (email, first_name, last_name, member_session.user_id),
+        )
+            
+        cur.close()
+    
+    def update_fitness_goals(self, fitness_goal_id, weight, time):
+        cur = self.conn.cursor()
+        cur.execute(
+            "UPDATE PersonalFitnessGoal SET weight = %s, time = %s WHERE goal_id = %s",
+            (weight, time, fitness_goal_id),
+        )
+        cur.close()
+
+    def update_health_metrics(self, member_session, age, weight, height):
+        cur = self.conn.cursor()
+        #get metric id from the member's email
+        cur.execute(
+            "SELECT metric_id FROM Member WHERE member_id = %s",
+            (str(member_session.user_id)),
         )
         metric_id = cur.fetchone()[0]
         cur.execute(
             "UPDATE Metrics SET age = %s, weight = %s, height = %s WHERE metric_id = %s",
             (age, weight, height, metric_id),
         )
-        cur.execute(
-            "UPDATE Member SET first_name = %s, last_name = %s WHERE email = %s",
-            (first_name, last_name, email),
-        )
         cur.close()
+
 
     def schedule_personal_training_session(
         self, member_id, trainer_id, room_id, start_time, end_time
@@ -130,13 +150,9 @@ class DBConnection:
         cur.close()
 
     def schedule_group_fitness_class(
-        self, member_id, group_fitness_class_id, room_id, start_time, end_time
+        self, member_id, group_fitness_class_id
     ):
         cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO Uses (group_fitness_class_id, room_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
-            (group_fitness_class_id, room_id, start_time, end_time),
-        )
         cur.execute(
             "INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (%s, %s)",
             (member_id, group_fitness_class_id),

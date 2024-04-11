@@ -25,17 +25,29 @@ class MemberSession:
         self.user_id = user_id
 
     def update_profile(self):
-        print("Updating profile")
-        first_name = input("Please enter your first name: ")
-        last_name = input("Please enter your last name: ")
-        email = input("Please enter your email: ")
-        age = input("Please enter your age: ")
-        weight = input("Please enter your weight: ")
-        height = input("Please enter your height: ")
-
-        self.db.update_user(
-            self.user_id, first_name, last_name, email, age, weight, height
-        )
+        print("Please select from the following options")
+        print("1. Update personal information")
+        print("2. Update fitness goals")
+        print("3. Update health metrics")
+        #get user input
+        option = int(input("Please select from the following options: "))
+        if option == 1:
+            first_name = input("Please enter your first name: ")
+            last_name = input("Please enter your last name: ")
+            email = input("Please enter your email: ")
+            self.db.update_personal_information(self, email, first_name, last_name)
+        elif option == 2:
+            fitness_goal_id = input("Please enter the fitness goal id: ")
+            weight = input("Please enter the weight you want to achieve: ")
+            time = input("Please enter the time you want to achieve it in: ")
+            self.db.update_fitness_goals(fitness_goal_id, time, weight)
+        elif option == 3:
+            age = input("Please enter your age: ")
+            weight = input("Please enter your weight: ")
+            height = input("Please enter your height: ")
+            self.db.update_health_metrics(self, age, weight, height)
+        else:
+            print("Invalid input. Please try again.")
         print("Profile updated successfully")
 
     def display_dashboard(self):
@@ -62,12 +74,10 @@ class MemberSession:
             print("Personal training session scheduled successfully")
         elif user_input == 2:
             print("Scheduling group fitness class")
-            room_id = input("Please enter the room id: ")
-            start_time = input("Please enter the start time: ")
-            end_time = input("Please enter the end time: ")
+            group_fitness_class_id = input("Please enter the group fitness class id: ")
 
             self.db.schedule_group_fitness_class(
-                self.user_id, room_id, start_time, end_time
+                self.user_id, group_fitness_class_id
             )
             print("Group fitness class scheduled successfully")
         else:
