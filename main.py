@@ -19,6 +19,95 @@ Administrative Staff Functions:
 """
 
 
+class AdminSession:
+    def __init__(self, db):
+        self.db = db
+
+    def room_booking_management(self):
+        print("Room booking management")
+        print("1. Book a room")
+        print("2. Cancel a room booking")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Booking a room")
+            room_id = input("Please enter the room id: ")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.book_room(room_id, start_time, end_time)
+            print("Room booked successfully")
+        elif user_input == 2:
+            print("Cancelling a room booking")
+            room_id = input("Please enter the room id: ")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.cancel_room_booking(room_id, start_time, end_time)
+            print("Room booking cancelled successfully")
+        else:
+            print("Invalid input. Please try again.")
+
+    def equipment_maintenance_monitoring(self):
+        print("Equipment maintenance monitoring")
+        print("1. Report equipment issue")
+        print("2. Resolve equipment issue")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Reporting equipment issue")
+            equipment_id = input("Please enter the equipment id: ")
+            issue = input("Please enter the issue: ")
+
+            self.db.report_equipment_issue(equipment_id, issue)
+            print("Equipment issue reported successfully")
+        elif user_input == 2:
+            print("Resolving equipment issue")
+            equipment_id = input("Please enter the equipment id: ")
+
+            self.db.resolve_equipment_issue(equipment_id)
+            print("Equipment issue resolved successfully")
+        else:
+            print("Invalid input. Please try again.")
+
+    def class_schedule_updating(self):
+        print("Class schedule updating")
+        print("1. Add a class")
+        print("2. Remove a class")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Adding a class")
+            room_id = input("Please enter the room id: ")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.add_class(room_id, start_time, end_time)
+            print("Class added successfully")
+        elif user_input == 2:
+            print("Removing a class")
+            room_id = input("Please enter the room id: ")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.remove_class(room_id, start_time, end_time)
+            print("Class removed successfully")
+        else:
+            print("Invalid input. Please try again.")
+
+    def billing_and_payment_processing(self):
+        print("Billing and payment processing")
+        print("1. Process payment")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Processing payment")
+            user_id = input("Please enter the user id: ")
+            amount = input("Please enter the amount: ")
+
+            print("Payment processed successfully")
+
+
 class MemberSession:
     def __init__(self, db, user_id):
         self.db = db
@@ -82,6 +171,39 @@ class MemberSession:
             print("Group fitness class scheduled successfully")
         else:
             print("Invalid input. Please try again.")
+
+
+class TrainerSession:
+    def __init__(self, db, trainer_id):
+        self.db = db
+        self.trainer_id = trainer_id
+
+    def schedule_management(self):
+        print("Scheduling management")
+        print("1. Set available time")
+        print("2. View member profile")
+        user_input = int(input("Please enter a number: "))
+
+        if user_input == 1:
+            print("Setting available time")
+            start_time = input("Please enter the start time: ")
+            end_time = input("Please enter the end time: ")
+
+            self.db.set_trainer_availability(self.trainer_id, start_time, end_time)
+            print("Available time set successfully")
+        elif user_input == 2:
+            print("Viewing member profile")
+            member_id = input("Please enter the member id: ")
+            member = self.db.get_user_dashboard(member_id)
+            print(member)
+        else:
+            print("Invalid input. Please try again.")
+
+    def view_member_profile(self):
+        print("Viewing member profile")
+        member_id = input("Please enter the member id: ")
+        member = self.db.get_user_dashboard(member_id)
+        print(member)
 
 
 def main():
@@ -204,9 +326,58 @@ def main():
             return
 
     elif current_trainer:
-        pass
+        trainer_session = TrainerSession(db, current_trainer)
+        while True:
+            print("Welcome to the Trainer Dashboard")
+            print("Please select from the following options:")
+            print("1. Schedule Management")
+            print("2. View Member Profile")
+            print("3. Logout")
+
+            user_input = int(input("Please enter a number: "))
+
+            if user_input > 3 or user_input < 1:
+                print("Invalid input. Please try again.")
+            else:
+                break
+
+        if user_input == 1:
+            trainer_session.schedule_management()
+        elif user_input == 2:
+            trainer_session.view_member_profile()
+        else:
+            print("Logging out")
+            current_trainer = None
+            return
     elif current_admin:
-        pass
+        session = AdminSession(db)
+        while True:
+            print("Welcome to the Admin Dashboard")
+            print("Please select from the following options:")
+            print("1. Room Booking Management")
+            print("2. Equipment Maintenance Monitoring")
+            print("3. Class Schedule Updating")
+            print("4. Billing and Payment Processing")
+            print("5. Logout")
+
+            user_input = int(input("Please enter a number: "))
+
+            if user_input > 5 or user_input < 1:
+                print("Invalid input. Please try again.")
+            else:
+                break
+
+        if user_input == 1:
+            session.room_booking_management()
+        elif user_input == 2:
+            session.equipment_maintenance_monitoring()
+        elif user_input == 3:
+            session.class_schedule_updating()
+        elif user_input == 4:
+            session.billing_and_payment_processing()
+        else:
+            print("Logging out")
+            current_admin = None
 
     return
 

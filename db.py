@@ -24,21 +24,115 @@ class DBConnection:
     def init_db(self):
         print("Starting initializing  Club Database")
         cur = self.conn.cursor()
-        with open('DDLstatements.sql', 'r') as file:
+        with open("DDLstatements.sql", "r") as file:
             sql = file.read()
             cur.execute(sql)
             self.conn.commit()
 
         cur.close()
-    
+
     def populate_db(self):
         print("Starting Populating Club Database")
         cur = self.conn.cursor()
-        with open('DMLstatements.sql', 'r') as file:
+        with open("DMLstatements.sql", "r") as file:
             sql = file.read()
             cur.execute(sql)
             self.conn.commit()
 
+        cur.close()
+
+    def book_room(self, room_id, start_time, end_time):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Room WHERE room_id = %s", (room_id,))
+        result = cur.fetchone()
+        if result is None:
+            return False
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession WHERE room_id = %s AND ((start_time <= %s AND end_time >= %s) OR (start_time <= %s AND end_time >= %s) OR (start_time >= %s AND end_time <= %s))",
+            (room_id, start_time, start_time, end_time, end_time, start_time, end_time),
+        )
+        result = cur.fetchone()
+        if result is not None:
+            return False
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass WHERE room_id = %s AND ((start_time <= %s AND end_time >= %s) OR (start_time <= %s AND end_time >= %s) OR (start_time >= %s AND end_time <= %s))",
+            (room_id, start_time, start_time, end_time, end_time, start_time, end_time),
+        )
+        result = cur.fetchone()
+        if result is not None:
+            return False
+        cur.close()
+        return True
+
+    def get_billing_info(self, user_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM Member WHERE member_id = %s",
+            (user_id,),
+        )
+        result = cur.fetchone()
+        cur.close()
+        return result
+
+    def cancel_room_booking(self, room_id, start_time, end_time):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession WHERE room_id = %s AND start_time = %s AND end_time = %s",
+            (room_id, start_time, end_time),
+        )
+        result = cur.fetchone()
+        if result is not None:
+            cur.execute(
+                "DELETE FROM PersonalTrainingSession WHERE room_id = %s AND start_time = %s AND end_time = %s",
+                (room_id, start_time, end_time),
+            )
+            cur.close()
+            return True
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass WHERE room_id = %s AND start_time = %s AND end_time = %s",
+            (room_id, start_time, end_time),
+        )
+        result = cur.fetchone()
+        if result is not None:
+            cur.execute(
+                "DELETE FROM GroupFitnessClass WHERE room_id = %s AND start_time = %s AND end_time = %s",
+                (room_id, start_time, end_time),
+            )
+            cur.close()
+            return True
+        cur.close()
+        return False
+
+    def report_equipment_issue(self, equipment_id, issue):
+        cur = self.conn.cursor()
+        cur.execute(
+            "UPDATE Equipment SET issue = %s WHERE equipment_id = %s",
+            (issue, equipment_id),
+        )
+        cur.close()
+
+    def resolve_equipment_issue(self, equipment_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "DELETE FROM Equipment WHERE equipment_id = %s",
+            (equipment_id,),
+        )
+        cur.close()
+
+    def add_class(self, name, room_id, start_time, end_time):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO GroupFitnessClass (name, room_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
+            (name, room_id, start_time, end_time),
+        )
+        cur.close()
+
+    def remove_class(self, name, room_id, start_time, end_time):
+        cur = self.conn.cursor()
+        cur.execute(
+            "DELETE FROM GroupFitnessClass WHERE name = %s AND room_id = %s AND start_time = %s AND end_time = %s",
+            (name, room_id, start_time, end_time),
+        )
         cur.close()
 
     def drop_db(self):
