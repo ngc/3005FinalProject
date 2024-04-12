@@ -1,4 +1,4 @@
-from db import DBConnection
+from db import DBConnection, DisplayTable
 import datetime
 
 """
@@ -23,6 +23,7 @@ Administrative Staff Functions:
 class AdminSession:
     def __init__(self, db):
         self.db = db
+        self.display = DisplayTable(db)
 
     def room_booking_management(self):
         print("Room booking management")
@@ -32,6 +33,8 @@ class AdminSession:
 
         if user_input == 1:
             print("Booking a room")
+            self.display.display_rooms()
+
             fitness_class_name = input("Please enter the fitness class name: ")
             room_name = input("Please enter the room name: ")
             room_number = input("Please enter the room number: ")
@@ -60,6 +63,7 @@ class AdminSession:
 
         if user_input == 1:
             print("Reporting equipment issue")
+
             equipment_id = input("Please enter the equipment id: ")
             issue = input("Please enter the issue: ")
 
@@ -107,6 +111,8 @@ class AdminSession:
         print("2. Pay a bill")
         print("3. Bill a member")
 
+        self.display.display_member()
+
         user_input = int(input("Please enter a number: "))
         if user_input == 1:
             print("Listing all pending bills")
@@ -139,6 +145,7 @@ class MemberSession:
     def __init__(self, db, user_id):
         self.db = db
         self.user_id = user_id
+        self.display = DisplayTable(db)
 
     def update_profile(self):
         print("Please select from the following options")
@@ -170,6 +177,8 @@ class MemberSession:
         print("Profile updated successfully")
 
     def submit_rating_for_trainer(self):
+        self.display.display_trainers()
+
         trainer_id = input("Please enter the trainer id: ")
         rating = input("Please enter the rating 1-5: ")
         self.db.submit_rating_for_trainer(self.user_id, trainer_id, rating)
@@ -237,8 +246,12 @@ class TrainerSession:
     def __init__(self, db, trainer_id):
         self.db = db
         self.trainer_id = trainer_id
+        self.display = DisplayTable(db)
 
     def schedule_management(self):
+
+        self.display.display_member()
+
         print("Scheduling management")
         print("1. Set available time")
         print("2. View member profile")

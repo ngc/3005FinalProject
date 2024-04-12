@@ -117,19 +117,19 @@ class DBConnection:
             "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
             (room_id, group_fitness_class_id, start_time, end_time),
         )
-        
+
         cur.close()
 
     def remove_class(self, name, room_id, start_time, end_time):
         cur = self.conn.cursor()
 
-        #delete the uses
+        # delete the uses
         cur.execute(
             "DELETE FROM Uses WHERE room_id = %s AND start_time = %s AND end_time = %s",
             (room_id, start_time, end_time),
         )
 
-        #delete the class based on name
+        # delete the class based on name
         cur.execute(
             "DELETE FROM GroupFitnessClass WHERE name = %s",
             (name,),
@@ -605,3 +605,262 @@ class DBConnection:
         print("trainer name is ", trainer_name)
         cur.close()
         return trainer_name
+
+
+class DisplayTable:
+    def __init__(self, db):
+        self.db = db
+
+    def display_metrics(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Metrics")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Metrics Table:")
+        print("metric_id | age | weight | height")
+        for row in result:
+            print(row)
+
+    def display_member(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Member")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Member Table:")
+        print("member_id | email | first_name | last_name | metric_id")
+        for row in result:
+            print(row)
+
+    def display_equipment(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Equipment")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Equipment Table:")
+        print("equipment_id | equipment_name | quality | issue")
+        for row in result:
+            print(row)
+
+    def display_exercise_routines(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM ExerciseRoutine")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Exercise Routine Table:")
+        print("exercise_routine_id | repititions | sets | equipment_id")
+        for row in result:
+            print(row)
+
+    def display_personal_fitness_goals(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM PersonalFitnessGoal")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Personal Fitness Goal Table:")
+        print("goal_id | time | goal_description")
+        for row in result:
+            print(row)
+
+    def display_fitness_achievements(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM FitnessAchievement")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Fitness Achievement Table:")
+        print("achievement_id | achievement")
+        for row in result:
+            print(row)
+
+    def display_trainers(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Trainer")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Trainer Table:")
+        print("trainer_id | first_name | last_name")
+        for row in result:
+            print(row)
+
+    def display_trainer_shifts(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM TrainerShifts")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Trainer Shifts Table:")
+        print("trainer_id | scheduled_shifts | unavailable_times")
+        for row in result:
+            print(row)
+
+    def display_rooms(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Room")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Room Table:")
+        print("room_id | room_name | room_number")
+        for row in result:
+            print(row)
+
+    def display_personal_training_sessions(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM PersonalTrainingSession")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Personal Training Session Table:")
+        print("personal_training_session_id | room_id")
+        for row in result:
+            print(row)
+
+    def display_group_fitness_classes(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM GroupFitnessClass")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Group Fitness Class Table:")
+        print("group_fitness_class_id | name")
+        for row in result:
+            print(row)
+
+    def display_performs(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Performs")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Performs Table:")
+        print("member_id | exercise_routine_id")
+        for row in result:
+            print(row)
+
+    def display_has(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Has")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Has Table:")
+        print("member_id | goal_id")
+        for row in result:
+            print(row)
+
+    def display_achieved(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Achieved")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Achieved Table:")
+        print("member_id | achievement_id")
+        for row in result:
+            print(row)
+
+    def display_teaches(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Teaches")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Teaches Table:")
+        print("trainer_id | personal_training_session_id | start_time | end_time")
+        for row in result:
+            print(row)
+
+    def display_attends(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Attends")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Attends Table:")
+        print("member_id | personal_training_session_id")
+        for row in result:
+            print(row)
+
+    def display_frequents(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Frequents")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Frequents Table:")
+        print("member_id | group_fitness_class_id")
+        for row in result:
+            print(row)
+
+    def display_uses(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Uses")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Uses Table:")
+        print("group_fitness_class_id | room_id | start_time | end_time")
+        for row in result:
+            print(row)
+
+    def display_employs(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM Employs")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Employs Table:")
+        print("exercise_routine_id | equipment_id")
+        for row in result:
+            print(row)
+
+    def display_pending_bills(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM PendingBill")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Pending Bill Table:")
+        print("bill_id | member_id | amount")
+        for row in result:
+            print(row)
+
+    def display_trainer_ratings(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM TrainerRating")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Trainer Rating Table:")
+        print("rating_id | trainer_id | rating | submited_by")
+        for row in result:
+            print(row)
+
+    def display_all_tables(self):
+        self.display_metrics()
+        self.display_member()
+        self.display_equipment()
+        self.display_exercise_routines()
+        self.display_personal_fitness_goals()
+        self.display_fitness_achievements()
+        self.display_trainers()
+        self.display_trainer_shifts()
+        self.display_rooms()
+        self.display_personal_training_sessions()
+        self.display_group_fitness_classes()
+        self.display_performs()
+        self.display_has()
+        self.display_achieved()
+        self.display_teaches()
+        self.display_attends()
+        self.display_frequents()
+        self.display_uses()
+        self.display_employs()
+        self.display_pending_bills()
+        self.display_trainer_ratings()
