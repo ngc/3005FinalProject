@@ -135,13 +135,21 @@ class AdminSession:
 
         elif user_input == 2:
             print("Paying a bill")
+            bills = self.db.get_all_bills()
+            for bill in bills:
+                print(f"Bill ID: {bill[0]}, Amount: ${bill[1]}, Member: {bill[2]}")
             bill_id = get_valid_int_input("Please enter the bill id: ")
-
-            self.db.pay_bill(bill_id)
-            print("Bill paid successfully")
+            if self.db.does_bill_exist(bill_id):
+                self.db.pay_bill(bill_id)
+                print("Bill paid successfully")
+            else:
+                print("Bill does not exist")
         elif user_input == 3:
             print("Billing a member")
-            member_email = input("Please enter the member email: ")
+
+            member_email = "email"
+            while not self.db.does_user_exist_with_email(member_email):
+                member_email = input("Please enter a valid member email: ")
             amount = get_valid_int_input("Please enter the amount: ")
 
             self.db.bill_member(member_email, amount)

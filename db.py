@@ -630,3 +630,23 @@ class DBConnection:
         print("trainer name is ", trainer_name)
         cur.close()
         return trainer_name
+    def does_bill_exist(self, bill_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM PendingBill WHERE bill_id = %s", (bill_id,))
+        result = cur.fetchone()
+        cur.close()
+        return result is not None
+    def pay_bill(self, bill_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "DELETE FROM PendingBill WHERE bill_id = %s",
+            (bill_id,),
+        )
+        cur.close()
+    def get_all_bills(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM PendingBill")
+        result = cur.fetchall()
+        cur.close()
+        return result
+    
