@@ -305,17 +305,32 @@ class TrainerSession:
         self.display.display_member()
 
         print("Scheduling management")
-        print("1. Set available time")
+        print("1. Set unavailable time")
         print("2. View member profile")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Setting available time")
+            date = input(
+                "Please enter the date you would like to set your unavailable time in the format DAY/MONTH/YEAR: "
+            )
+
+            date_parts = date.split("/")
+            day = int(date_parts[0])
+            month = int(date_parts[1])
+            year = int(date_parts[2])
+
+            weekday = day_of_week(day, month, year)
+            print(f"The date you want to set your unavailable time for is {weekday}")
+
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
-            self.db.set_trainer_availability(self.trainer_id, start_time, end_time)
-            print("Available time set successfully")
+            self.db.set_unavailable_time(
+                self.trainer_id, day, month, year, start_time, end_time
+            )
+            print("Unavailable time set successfully")
+
         elif user_input == 2:
             print("Viewing member profile")
             member_id = get_valid_int_input("Please enter the member id: ")
