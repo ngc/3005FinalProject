@@ -46,7 +46,7 @@ class AdminSession:
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
             self.db.book_room(
-                room_name, room_number, fitness_class_name, start_time, end_time
+                room_name, room_number, fitness_class_name, start_time, end_time,
             )
             print("Room booked successfully")
         elif user_input == 2:
@@ -63,8 +63,12 @@ class AdminSession:
 
     def equipment_maintenance_monitoring(self):
         print("Equipment maintenance monitoring")
+        print(" ")
+        DisplayTable.display_equipment(self)
+        print(" ")
         print("1. Report equipment issue")
         print("2. Resolve equipment issue")
+        print("3. Add new equipment")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
@@ -83,25 +87,19 @@ class AdminSession:
             self.db.report_equipment_issue(equipment_id, issue)
             print("Equipment issue reported successfully")
         elif user_input == 2:
-            print("Resolving equipment issue")
-            # print all equipment
-            equipment = self.db.get_all_equipment()
-            equipment_with_issues = [item for item in equipment if item[3] != None]
-            for item in equipment_with_issues:
-                print(
-                    f"ID: {item[0]}, Name: {item[1]}, Quality: {item[2]}, Issue: {item[3]}"
-                )
 
-            if equipment_with_issues == []:
-                print("No equipment with issues")
-                return
-
-            equipment_id = -1
-            while equipment_id not in [item[0] for item in equipment_with_issues]:
-                equipment_id = get_valid_int_input("Please enter the equipment id: ")
-
+            equipment_id = input("Please enter the id of the equipment that was fixed ")
             self.db.resolve_equipment_issue(equipment_id)
             print("Equipment issue resolved successfully")
+
+        elif user_input == 3:
+            
+            equipment_name = input("Please enter the name of the equipment: ")
+            equipment_quality = input("Please enter the quality of the equipment: ")
+            equipment_issues = input("Please enter any issues with the equipment : ")
+            self.db.add_new_equipment(equipment_name, equipment_quality, equipment_issues)
+            print("Equipment added successfully")
+
         else:
             print("Invalid input. Please try again.")
 

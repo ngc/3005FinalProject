@@ -122,6 +122,14 @@ class DBConnection:
         )
         cur.close()
 
+    def add_new_equipment(self, equipment_name, quality, issue):
+        cur = self.conn.cursor()
+        cur.execute(
+            "INSERT INTO Equipment (equipment_name, quality, issue) VALUES (%s, %s, %s)",
+            (equipment_name, quality, issue),
+        )
+        cur.close()
+
     def add_class(self, name, room_id, month, day, year, start_time, end_time):
         # CREATE TABLE IF NOT EXISTS GroupFitnessClass (group_fitness_class_id SERIAL PRIMARY KEY, name VARCHAR(255), booking_id INT, FOREIGN KEY (booking_id) REFERENCES RoomBooking(booking_id), trainer_id INT, FOREIGN KEY (trainer_id) REFERENCES Trainer(trainer_id), members TEXT);
 
@@ -347,12 +355,12 @@ class DBConnection:
                 return False
         return True
 
-    def book_room(self, room_id, month, day, year, start_time, end_time):
+    def book_room(self, room_id, month, day, year, start_time, end_time, members):
         cur = self.conn.cursor()
         # return the booking id
         cur.execute(
-            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time) VALUES (%s, %s, %s, %s, %s, %s) RETURNING booking_id",
-            (room_id, month, day, year, start_time, end_time),
+            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time, members) VALUES (%s, %s, %s, %s, %s, %s) RETURNING booking_id",
+            (room_id, month, day, year, start_time, end_time, NULL),
         )
         booking_id = cur.fetchone()[0]
         cur.close()
@@ -860,7 +868,7 @@ class DisplayTable:
         result = cur.fetchall()
         cur.close()
 
-        print("Equipment Table:")
+        print("Equipment:")
         print("equipment_id | equipment_name | quality | issue")
         for row in result:
             print(row)
