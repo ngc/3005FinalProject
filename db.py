@@ -23,6 +23,28 @@ class DBConnection:
         )
         self.conn.autocommit = True
 
+    def export_data_to_csv(self):
+        cur = self.conn.cursor()
+        tables = [
+            "Metrics",
+            "Member",
+            "Equipment",
+            "ExerciseRoutine",
+            "PersonalFitnessGoal",
+            "FitnessAchievement",
+            "Trainer",
+            "TrainerShifts",
+            "Room",
+            "PersonalTrainingSession",
+            "GroupFitnessClass",
+            "Performs",
+        ]
+
+        for table in tables:
+            cur.execute(
+                f"COPY {table} TO '{os.getcwd()}/{table}.csv' DELIMITER ',' CSV HEADER"
+            )
+
     def init_db(self):
         print("Starting initializing  Club Database")
         cur = self.conn.cursor()
@@ -191,7 +213,7 @@ class DBConnection:
         cur.execute("DROP TABLE IF EXISTS Performs")
         cur.execute("DROP TABLE IF EXISTS GroupFitnessClass")
         cur.execute("DROP TABLE IF EXISTS PersonalTrainingSession")
-        cur.execute("DROP TABLE IF EXISTS Room")
+        cur.execute("DROP TABLE IF EXISTS Room CASCADE")
         cur.execute("DROP TABLE IF EXISTS TrainerShifts")
         cur.execute("DROP TABLE IF EXISTS Trainer")
         cur.execute("DROP TABLE IF EXISTS FitnessAchievement")

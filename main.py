@@ -25,6 +25,11 @@ class AdminSession:
         self.db = db
         self.display = DisplayTable(db)
 
+    def export_data_to_csv(self):
+        print("Exporting data to CSV")
+        self.db.export_data_to_csv()
+        print("Data exported successfully")
+
     def room_booking_management(self):
         print("Room booking management")
         print("1. Book a room")
@@ -476,10 +481,11 @@ def main(db: DBConnection):
             print("3. Class Schedule Updating")
             print("4. Billing and Payment Processing")
             print("5. Logout")
+            print("6. Export data to CSV")
 
             user_input = int(get_valid_int_input("Please enter a number: "))
 
-            if user_input > 5 or user_input < 1:
+            if user_input > 6 or user_input < 1:
                 print("Invalid input. Please try again.")
 
             if user_input == 1:
@@ -490,9 +496,11 @@ def main(db: DBConnection):
                 session.class_schedule_updating()
             elif user_input == 4:
                 session.billing_and_payment_processing()
-        print("Logging out")
-        current_admin = None
-
+            elif user_input == 5:
+                print("Logging out")
+                quit()
+            elif user_input == 6:
+                session.export_data_to_csv()
     return
 
 
