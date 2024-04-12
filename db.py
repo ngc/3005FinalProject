@@ -3,6 +3,9 @@ from dotenv import load_dotenv
 import os
 import json
 import datetime
+from bcrypt import hashpw, gensalt
+import binascii
+
 
 load_dotenv()
 
@@ -288,16 +291,55 @@ class DBConnection:
         cur.close()
         return result
 
-    def register_user(self, email, first_name, last_name, age, weight, height):
+    def does_user_password_match(self, email, password):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Member WHERE email = %s", (email,))
+        result = cur.fetchone()
+
+        if result is None:
+            return False
+
+        hex_hashed_password = result[5]
+        hex_salt = result[6]
+
+        cur.close()
+
+        # unhexlify the hashed password and salt
+        hashed_password = hashpw(password.encode("utf-8"), binascii.unhexlify(hex_salt))
+
+        return hashed_password == binascii.unhexlify(hex_hashed_password)
+
+    def register_user(
+        self, email, first_name, last_name, age, weight, height, password
+    ):
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO Metrics (age, weight, height) VALUES (%s, %s, %s) RETURNING metric_id",
             (age, weight, height),
         )
         metric_id = cur.fetchone()[0]
+
+        # use bcrypt to hash the password
+        salt = gensalt()
+        hashed_password = hashpw(
+            password.encode("utf-8"), salt.decode().encode("utf-8")
+        )
+        hex_hashed_password = binascii.hexlify(hashed_password).decode()
+        hex_salt = binascii.hexlify(salt).decode()
+
+        print("SALT: ", salt.decode())
+        print("HASHED PASSWORD: ", hashed_password)
+
         cur.execute(
-            "INSERT INTO Member (email, first_name, last_name, metric_id) VALUES (%s, %s, %s, %s)",
-            (email, first_name, last_name, metric_id),
+            "INSERT INTO Member (email, first_name, last_name, metric_id, password, salt) VALUES (%s, %s, %s, %s, %s, %s) RETURNING member_id",
+            (
+                email,
+                first_name,
+                last_name,
+                metric_id,
+                hex_hashed_password,
+                hex_salt,
+            ),
         )
         cur.close()
 
@@ -587,15 +629,12 @@ class DBConnection:
         scheduled_shifts_list = []
         for row in results:
 
-
-
             scheduled_shifts = json.loads(str(row[1]))
             print("the scheduled_shifts is ", scheduled_shifts)
 
-
             shifts = scheduled_shifts[str(weekday_num)]
 
-            #break shifts up to be hourly
+            # break shifts up to be hourly
             hourly_shifts = []
             for shift in shifts:
                 start_hour, end_hour = shift
@@ -605,15 +644,16 @@ class DBConnection:
                 hourly_shifts.extend(hourly_intervals)
 
             if str(weekday_num) in scheduled_shifts:
-                #scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
-                scheduled_shifts_list.append({
-                    "trainer_id" : json.loads(str(row[0])),
-                    "trainer name" : self.get_trainer_name_by_id(row[0]),
-                    "scheduled_shifts": hourly_shifts
-                })
+                # scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append(
+                    {
+                        "trainer_id": json.loads(str(row[0])),
+                        "trainer name": self.get_trainer_name_by_id(row[0]),
+                        "scheduled_shifts": hourly_shifts,
+                    }
+                )
 
                 print("Available trainers:", scheduled_shifts_list)
-
 
         for entry in scheduled_shifts_list:
             cur = self.conn.cursor()
@@ -636,7 +676,7 @@ class DBConnection:
                         start_time, end_time = interval
                         print(f"  Start: {start_time}, End: {end_time}")
 
-                #this is the date the trainer is unavailable for
+                # this is the date the trainer is unavailable for
                 for date_str in result:
                     print("date string is", date_str)
                     date_str = date_str.replace(" ", "")
@@ -645,16 +685,17 @@ class DBConnection:
                     print(" day is ", myday)
                     print(" year is ", myyear)
 
-                    #check if they are unavailable on a day they normally work
-                    print("days are ",str(myday), " and ", str(day) )
-                    print("months are ",str(mymonth), " and ", str(month) )
-                    print("year are ",str(myyear), " and ", str(year) )
-                    if int(myday) == int(day) and int(month) == int(mymonth) and int(year) == int(myyear):
-                        print("INSIDE HERE",start_time, " and ", end_time)
-                        #now remove that trainers shifts from 
-
-
-
+                    # check if they are unavailable on a day they normally work
+                    print("days are ", str(myday), " and ", str(day))
+                    print("months are ", str(mymonth), " and ", str(month))
+                    print("year are ", str(myyear), " and ", str(year))
+                    if (
+                        int(myday) == int(day)
+                        and int(month) == int(mymonth)
+                        and int(year) == int(myyear)
+                    ):
+                        print("INSIDE HERE", start_time, " and ", end_time)
+                        # now remove that trainers shifts from
 
         return scheduled_shifts_list is not None
 

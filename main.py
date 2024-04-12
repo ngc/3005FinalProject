@@ -382,11 +382,13 @@ def main(db: DBConnection):
         weight = get_valid_int_input("Please enter your weight: ")
         height = get_valid_int_input("Please enter your height: ")
 
+        password = input("Please enter your password: ")
+
         if db.does_user_exist_with_email(email):
             print("User already exists")
             return
 
-        db.register_user(email, first_name, last_name, age, weight, height)
+        db.register_user(email, first_name, last_name, age, weight, height, password)
         print("User registered successfully")
 
     elif user_input == 2:
@@ -395,6 +397,12 @@ def main(db: DBConnection):
 
         if not db.does_user_exist_with_email(email):
             print("User does not exist")
+            return
+
+        password = input("Please enter your password: ")
+
+        if not db.does_user_password_match(email, password):
+            print("Password does not match")
             return
 
         current_user = db.get_user_id(email)
