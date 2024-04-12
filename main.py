@@ -82,19 +82,21 @@ class AdminSession:
 
         if user_input == 1:
             print("Adding a class")
+            name = input("Please enter the class name: ")
             room_id = input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
-            self.db.add_class(room_id, start_time, end_time)
+            self.db.add_class(name, room_id, start_time, end_time)
             print("Class added successfully")
         elif user_input == 2:
             print("Removing a class")
+            name = input("Please enter the class name: ")
             room_id = input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
-            self.db.remove_class(room_id, start_time, end_time)
+            self.db.remove_class(name, room_id, start_time, end_time)
             print("Class removed successfully")
         else:
             print("Invalid input. Please try again.")

@@ -107,16 +107,32 @@ class DBConnection:
     def add_class(self, name, room_id, start_time, end_time):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO GroupFitnessClass (name, room_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
-            (name, room_id, start_time, end_time),
+            "INSERT INTO GroupFitnessClass (name) VALUES (%s) RETURNING group_fitness_class_id",
+            (name,),
         )
+
+        group_fitness_class_id = cur.fetchone()[0]
+
+        cur.execute(
+            "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
+            (room_id, group_fitness_class_id, start_time, end_time),
+        )
+        
         cur.close()
 
     def remove_class(self, name, room_id, start_time, end_time):
         cur = self.conn.cursor()
+
+        #delete the uses
         cur.execute(
-            "DELETE FROM GroupFitnessClass WHERE name = %s AND room_id = %s AND start_time = %s AND end_time = %s",
-            (name, room_id, start_time, end_time),
+            "DELETE FROM Uses WHERE room_id = %s AND start_time = %s AND end_time = %s",
+            (room_id, start_time, end_time),
+        )
+
+        #delete the class based on name
+        cur.execute(
+            "DELETE FROM GroupFitnessClass WHERE name = %s",
+            (name,),
         )
         cur.close()
 
