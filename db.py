@@ -158,6 +158,39 @@ class DBConnection:
         )
         cur.close()
 
+    # self.db.set_unavailable_time(
+    #     self.trainer_id, day, month, year, start_time, end_time
+    # )
+    def set_unavailable_time(self, trainer_id, day, month, year, start_time, end_time):
+        # add into trainer shifts unavailable times column
+
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+
+        unavailable_times = cur.fetchone()[0]
+
+        if unavailable_times is None:
+            unavailable_times = {}
+        else:
+            unavailable_times = json.loads(unavailable_times)
+
+        # this is an example of how the dictionary will look like '{"12/4/2024": [9,10], "13/4/2024": [9,10]}'
+        date = f"{day}/{month}/{year}"
+        if date in unavailable_times:
+            unavailable_times[date].append(start_time)
+            unavailable_times[date].append(end_time)
+        else:
+            unavailable_times[date] = [start_time, end_time]
+
+        cur.execute(
+            "UPDATE TrainerShifts SET unavailable_times = %s WHERE trainer_id = %s",
+            (json.dumps(unavailable_times), trainer_id),
+        )
+        cur.close()
+
     def submit_rating_for_trainer(self, user_id, trainer_id, rating):
         cur = self.conn.cursor()
         cur.execute(
@@ -464,27 +497,32 @@ class DBConnection:
 
         scheduled_shifts_list = []
         for row in results:
-            #scheduled_shifts_list.append(json.loads(row[0]))
+            # scheduled_shifts_list.append(json.loads(row[0]))
             scheduled_shifts = json.loads(str(row[0]))
             print("the scheduled_shifts at 0 is ", scheduled_shifts)
 
             scheduled_shifts = json.loads(str(row[1]))
             print("the scheduled_shifts is ", scheduled_shifts)
             if str(weekday_num) in scheduled_shifts:
-                #scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
-                scheduled_shifts_list.append({
-                    "trainer_id" : json.loads(str(row[0])),
-                    "trainer name" : self.get_trainer_name_by_id(row[0]),
-                    "scheduled_shifts": scheduled_shifts[str(weekday_num)]
-                })
+                # scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append(
+                    {
+                        "trainer_id": json.loads(str(row[0])),
+                        "trainer name": self.get_trainer_name_by_id(row[0]),
+                        "scheduled_shifts": scheduled_shifts[str(weekday_num)],
+                    }
+                )
 
-        #now make sure there is nothing planned for that trainer on the specified days
+        # now make sure there is nothing planned for that trainer on the specified days
         print("Available trainers:", scheduled_shifts_list)
-        #check when they are available for
+        # check when they are available for
 
         for entry in scheduled_shifts_list:
             cur = self.conn.cursor()
-            cur.execute("SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s", (entry["trainer_id"],))
+            cur.execute(
+                "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
+                (entry["trainer_id"],),
+            )
             results = cur.fetchall()
             cur.close()
 
@@ -501,13 +539,16 @@ class DBConnection:
                     print(" day is ", myday)
                     print(" year is ", myyear)
 
-                    #check if they are unavailable on a day they normally work
-                    print("days are ",str(myday), " and ", str(day) )
-                    print("months are ",str(mymonth), " and ", str(month) )
-                    print("year are ",str(myyear), " and ", str(year) )
-                    if int(myday) == int(day) and int(month) == int(mymonth) and int(year) == int(myyear):
-                        print("INSIDE HERE" , times["{date_str}"])
-
+                    # check if they are unavailable on a day they normally work
+                    print("days are ", str(myday), " and ", str(day))
+                    print("months are ", str(mymonth), " and ", str(month))
+                    print("year are ", str(myyear), " and ", str(year))
+                    if (
+                        int(myday) == int(day)
+                        and int(month) == int(mymonth)
+                        and int(year) == int(myyear)
+                    ):
+                        print("INSIDE HERE", times["{date_str}"])
 
         return scheduled_shifts_list is not None
 
