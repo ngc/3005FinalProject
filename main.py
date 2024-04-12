@@ -22,7 +22,7 @@ Administrative Staff Functions:
 
 class AdminSession:
     def __init__(self, db):
-        self.db = db
+        self.db: DBConnection = db
         self.display = DisplayTable(db)
 
     def export_data_to_csv(self):
@@ -51,11 +51,12 @@ class AdminSession:
             print("Room booked successfully")
         elif user_input == 2:
             print("Cancelling a room booking")
-            room_id = get_valid_int_input("Please enter the room id: ")
-            start_time = input("Please enter the start time: ")
-            end_time = input("Please enter the end time: ")
 
-            self.db.cancel_room_booking(room_id, start_time, end_time)
+            self.display.display_room_bookings()
+
+            booking_id = get_valid_int_input("Please enter the booking id: ")
+
+            self.db.cancel_room_booking(booking_id)
             print("Room booking cancelled successfully")
         else:
             print("Invalid input. Please try again.")
@@ -178,7 +179,7 @@ class AdminSession:
 
 class MemberSession:
     def __init__(self, db, user_id):
-        self.db = db
+        self.db: DBConnection = db
         self.user_id = user_id
         self.display = DisplayTable(db)
 
@@ -253,7 +254,7 @@ class MemberSession:
     def schedule_management(self):
         print("Scheduling management")
         print("1. Schedule personal training session")
-        print("2. Schedule group fitness class")
+        print("2. Join group fitness class")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
@@ -283,12 +284,15 @@ class MemberSession:
             )
             print("Personal training session scheduled successfully")
         elif user_input == 2:
-            print("Scheduling group fitness class")
+            print("Join a group fitness class")
+
+            self.display.display_group_fitness_classes()
+
             group_fitness_class_id = get_valid_int_input(
                 "Please enter the group fitness class id: "
             )
 
-            self.db.schedule_group_fitness_class(self.user_id, group_fitness_class_id)
+            self.db.join_group_fitness_class(self.user_id, group_fitness_class_id)
             print("Group fitness class scheduled successfully")
         else:
             print("Invalid input. Please try again.")

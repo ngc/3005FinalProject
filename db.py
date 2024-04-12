@@ -7,6 +7,11 @@ import datetime
 load_dotenv()
 
 
+# uses UNIX timestamp of seconds
+def is_overlap(start_time1, end_time1, start_time2, end_time2):
+    return start_time1 < end_time2 and start_time2 < end_time1
+
+
 class DBConnection:
     def __init__(self):
         self.dbname = os.getenv("DB_NAME")
@@ -65,32 +70,6 @@ class DBConnection:
 
         cur.close()
 
-    def book_room(
-        self, room_name, room_number, fitness_class_name, start_time, end_time
-    ):
-        # insert into room
-        cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO Room (room_name, room_number) VALUES (%s, %s) RETURNING room_id",
-            (room_name, room_number),
-        )
-
-        room_id = cur.fetchone()[0]
-
-        # insert into fitness class with only name
-        cur.execute(
-            "INSERT INTO GroupFitnessClass (name) VALUES (%s) RETURNING group_fitness_class_id",
-            (fitness_class_name,),
-        )
-        group_fitness_class_id = cur.fetchone()[0]
-
-        # insert into uses
-        cur.execute(
-            "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
-            (room_id, group_fitness_class_id, start_time, end_time),
-        )
-        cur.close()
-
     def get_billing_info(self, user_id):
         cur = self.conn.cursor()
         cur.execute(
@@ -104,11 +83,28 @@ class DBConnection:
     def cancel_room_booking(self, room_id, start_time, end_time):
         cur = self.conn.cursor()
         cur.execute(
-            "DELETE FROM Uses WHERE room_id = %s AND start_time = %s AND end_time = %s",
+            "SELECT booking_id FROM RoomBooking WHERE room_id = %s AND start_time = %s AND end_time = %s",
             (room_id, start_time, end_time),
         )
+
+        booking_id = cur.fetchone()[0]
+
+        cur.execute(
+            "DELETE FROM GroupFitnessClass WHERE booking_id = %s",
+            (booking_id,),
+        )
+
+        cur.execute(
+            "DELETE FROM PersonalTrainingSession WHERE booking_id = %s",
+            (booking_id,),
+        )
+
+        cur.execute(
+            "DELETE FROM RoomBooking WHERE booking_id = %s",
+            (booking_id,),
+        )
+
         cur.close()
-        return False
 
     def report_equipment_issue(self, equipment_id, issue):
         cur = self.conn.cursor()
@@ -126,35 +122,31 @@ class DBConnection:
         )
         cur.close()
 
-    def add_class(self, name, room_id, start_time, end_time):
+    def add_class(self, name, room_id, month, day, year, start_time, end_time):
+        # CREATE TABLE IF NOT EXISTS GroupFitnessClass (group_fitness_class_id SERIAL PRIMARY KEY, name VARCHAR(255), booking_id INT, FOREIGN KEY (booking_id) REFERENCES RoomBooking(booking_id), trainer_id INT, FOREIGN KEY (trainer_id) REFERENCES Trainer(trainer_id), members TEXT);
+
+        # check if the room is available
+        if not self.room_is_available(room_id, month, day, year, start_time, end_time):
+            return False
+
+        booking_id = self.book_room(room_id, month, day, year, start_time, end_time)
+
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO GroupFitnessClass (name) VALUES (%s) RETURNING group_fitness_class_id",
-            (name,),
+            "INSERT INTO GroupFitnessClass (name, booking_id) VALUES (%s, %s) RETURNING group_fitness_class_id",
+            (name, booking_id),
         )
 
         group_fitness_class_id = cur.fetchone()[0]
-
-        cur.execute(
-            "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
-            (room_id, group_fitness_class_id, start_time, end_time),
-        )
-
         cur.close()
 
-    def remove_class(self, name, room_id, start_time, end_time):
+        return group_fitness_class_id
+
+    def remove_class(self, group_fitness_class_id):
         cur = self.conn.cursor()
-
-        # delete the uses
         cur.execute(
-            "DELETE FROM Uses WHERE room_id = %s AND start_time = %s AND end_time = %s",
-            (room_id, start_time, end_time),
-        )
-
-        # delete the class based on name
-        cur.execute(
-            "DELETE FROM GroupFitnessClass WHERE name = %s",
-            (name,),
+            "DELETE FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            (group_fitness_class_id,),
         )
         cur.close()
 
@@ -255,6 +247,8 @@ class DBConnection:
         cur.execute("DROP TABLE IF EXISTS Equipment")
         cur.execute("DROP TABLE IF EXISTS Member")
         cur.execute("DROP TABLE IF EXISTS Metrics")
+        cur.execute("DROP TABLE IF EXISTS RoomBooking")
+
         cur.close()
         print("Finished Deleting Club Database")
 
@@ -335,32 +329,119 @@ class DBConnection:
         )
         cur.close()
 
-    def schedule_personal_training_session(
-        self, member_id, trainer_id, room_id, start_time, end_time
-    ):
+    def trainer_is_available(self, trainer_id, month, day, year, start_time, end_time):
+        return True
+
+    def room_is_available(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO PersonalTrainingSession (room_id) VALUES (%s) RETURNING personal_training_session_id",
-            (room_id,),
+            "SELECT * FROM RoomBooking WHERE room_id = %s AND month = %s AND day = %s AND year = %s",
+            (room_id, month, day, year),
         )
-        personal_training_session_id = cur.fetchone()[0]
-        cur.execute(
-            "INSERT INTO Teaches (trainer_id, personal_training_session_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
-            (trainer_id, personal_training_session_id, start_time, end_time),
-        )
-        cur.execute(
-            "INSERT INTO Attends (member_id, personal_training_session_id) VALUES (%s, %s)",
-            (member_id, personal_training_session_id),
-        )
+
+        result = cur.fetchall()
         cur.close()
 
-    def schedule_group_fitness_class(self, member_id, group_fitness_class_id):
+        for booking in result:
+            if is_overlap(start_time, end_time, booking[5], booking[6]):
+                return False
+        return True
+
+    def book_room(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()
+        # return the booking id
         cur.execute(
-            "INSERT INTO Frequents (member_id, group_fitness_class_id) VALUES (%s, %s)",
-            (member_id, group_fitness_class_id),
+            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time) VALUES (%s, %s, %s, %s, %s, %s) RETURNING booking_id",
+            (room_id, month, day, year, start_time, end_time),
         )
+        booking_id = cur.fetchone()[0]
         cur.close()
+        return booking_id
+
+    def add_member_to_room_booking(self, booking_id, member_id):
+        cur = self.conn.cursor()
+        # room booking table has member TEXT field which is a json array
+        cur.execute(
+            "SELECT members FROM RoomBooking WHERE booking_id = %s",
+            (booking_id,),
+        )
+
+        members = cur.fetchone()[0]
+
+        if members is None:
+            members = []
+        else:
+            members = json.loads(members)
+
+        members.append(member_id)
+
+        cur.execute(
+            "UPDATE RoomBooking SET members = %s WHERE booking_id = %s",
+            (json.dumps(members), booking_id),
+        )
+
+        cur.close()
+
+    def schedule_personal_training_session(
+        self, member_id, trainer_id, room_id, month, day, year, start_time, end_time
+    ):
+        if not self.trainer_is_available(
+            trainer_id, month, day, year, start_time, end_time
+        ):
+            return False
+
+        if not self.room_is_available(room_id, month, day, year, start_time, end_time):
+            return False
+
+        booking_id = self.book_room(room_id, month, day, year, start_time, end_time)
+
+        self.add_member_to_room_booking(booking_id, member_id)
+
+        cur = self.conn.cursor()
+        # CREATE TABLE IF NOT EXISTS PersonalTrainingSession (personal_training_session_id SERIAL PRIMARY KEY, booking_id INT, FOREIGN KEY (booking_id) REFERENCES RoomBooking(booking_id), trainer_id INT, FOREIGN KEY (trainer_id) REFERENCES Trainer(trainer_id));
+        cur.execute(
+            "INSERT INTO PersonalTrainingSession (booking_id, trainer_id) VALUES (%s, %s) RETURNING personal_training_session_id",
+            (booking_id, trainer_id),
+        )
+
+        personal_training_session_id = cur.fetchone()[0]
+
+        return personal_training_session_id
+
+    def join_group_fitness_class(self, member_id, group_fitness_class_id):
+        cur = self.conn.cursor()
+
+        # check if the group fitness class exists
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            (group_fitness_class_id,),
+        )
+
+        result = cur.fetchone()
+
+        if result is None:
+            return False
+
+        # add the member to the members list
+        cur.execute(
+            "SELECT members FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            (group_fitness_class_id,),
+        )
+
+        members = cur.fetchone()[0]
+        if members is None:
+            members = []
+        else:
+            members = json.loads(members)
+
+        members.append(member_id)
+        cur.execute(
+            "UPDATE GroupFitnessClass SET members = %s WHERE group_fitness_class_id = %s",
+            (json.dumps(members), group_fitness_class_id),
+        )
+
+        cur.close()
+        return True
 
     def get_user_personal_training_sessions(self, id):
         cur = self.conn.cursor()
@@ -722,6 +803,17 @@ class DBConnection:
 class DisplayTable:
     def __init__(self, db):
         self.db = db
+
+    def display_room_bookings(self):
+        cur = self.db.get_connection().cursor()
+        cur.execute("SELECT * FROM RoomBooking")
+        result = cur.fetchall()
+        cur.close()
+
+        print("Room Booking Table:")
+        print("booking_id | room_id | month | day | year | start_time | end_time")
+        for row in result:
+            print(row)
 
     def display_metrics(self):
         cur = self.db.get_connection().cursor()
