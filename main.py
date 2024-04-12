@@ -162,10 +162,7 @@ class MemberSession:
 
             weekday = day_of_week(day, month, year)
             print(f"The date you want to book for is {weekday}")
-            date_obj = datetime.datetime(year, month, day)
-            weekday_num = date_obj.weekday() + 1
-            print(f"The weekday as a number is {weekday_num}")
-            myresult = self.db.get_trainer_by_day(day)
+            myresult = self.db.get_trainer_by_day(day, month, year)
 
             #print out the trainers that could train them on that day
 

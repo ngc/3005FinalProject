@@ -2,6 +2,7 @@ import psycopg2
 from dotenv import load_dotenv
 import os
 import json
+import datetime
 
 load_dotenv()
 
@@ -371,14 +372,26 @@ class DBConnection:
         cur.close()
         return result is not None
     
-    def get_trainer_by_day(self, day):
+    def get_trainer_by_day(self, day, month, year):
         cur = self.conn.cursor()
+        date_obj = datetime.datetime(year, month, day)
+        weekday_num = date_obj.weekday() + 1
         cur.execute("SELECT scheduled_shifts FROM TrainerShifts")
-        result = cur.fetchall()
-        print(f"the result of this is {result}")
+        results = cur.fetchall()
         cur.close()
 
-        return result is not None
+        print("weekday number is :", weekday_num)
+
+        scheduled_shifts_list = []
+        for row in results:
+            #scheduled_shifts_list.append(json.loads(row[0]))
+            scheduled_shifts = json.loads(row[0])
+            if str(weekday_num) in scheduled_shifts:
+                scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+
+        print("Available trainers:", scheduled_shifts_list)
+    
+        return scheduled_shifts_list is not None
 
     def get_connection(self):
         return self.conn

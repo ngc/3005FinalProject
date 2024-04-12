@@ -5,7 +5,8 @@ INSERT INTO ExerciseRoutine (repititions, sets, equipment_id) VALUES (10, 3, 1),
 INSERT INTO PersonalFitnessGoal (weight, time) VALUES (145, 30), (160.0, 60);
 INSERT INTO FitnessAchievement (achievement) VALUES ('Completed 5k Run'), ('Lost 10 Pounds');
 INSERT INTO Trainer (first_name, last_name) VALUES ('Nathan', 'Coulas'), ('Julie', 'Wechsler');
-INSERT INTO TrainerShifts (trainer_id, scheduled_shifts) VALUES (1, '{"1": {[9,10],[10,11]}, "2": {[9,10],[10,11]}, "5": {[9,10],[10,11], "7": {[9,10],[10,11]}'), (2, '{"5": {[9,10],[10,11]}, "6": {[9,10],[10,11]}, {[9,10],[10,11], "7": {[9,10],[10,11]}');
+INSERT INTO TrainerShifts (trainer_id, scheduled_shifts, unavailable_times) VALUES (1, '{"1": [[9,10],[10,11]], "2": [[9,10],[10,11]], "5": [[9,10],[10,11]], "7": [[9,10],[10,11]]}', '{"4/11/2024": [[9,10]]}'), 
+(2, '{"4": [[9,10],[10,11]], "6": [[9,10],[10,11]], "7": [[9,10],[10,11]]}', NULL);
 INSERT INTO Room (room_name, room_number) VALUES ('Yoga Studio', 101), ('Weight Room', 102);
 INSERT INTO PersonalTrainingSession (room_id) VALUES (1), (2);
 INSERT INTO GroupFitnessClass (name) VALUES ('Yoga Class'), ('Strength Training');
