@@ -383,18 +383,25 @@ class DBConnection:
         cur = self.conn.cursor()
         date_obj = datetime.datetime(year, month, day)
         weekday_num = date_obj.weekday() + 1
-        cur.execute("SELECT scheduled_shifts FROM TrainerShifts")
+        cur.execute("SELECT * FROM TrainerShifts")
         results = cur.fetchall()
         cur.close()
-
-        print("weekday number is :", weekday_num)
+        
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Trainer")
+        trainers = cur.fetchall()
+        cur.close()
+        
 
         scheduled_shifts_list = []
         for row in results:
-            #scheduled_shifts_list.append(json.loads(row[0]))
-            scheduled_shifts = json.loads(row[0])
+            scheduled_shifts = json.loads(row[1])
             if str(weekday_num) in scheduled_shifts:
-                scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append({
+                    "trainer id" : json.loads(str(row[0])),
+                    "trainer name" : self.get_trainer_name_by_id(row[0]),
+                    "scheduled_shifts": scheduled_shifts[str(weekday_num)]
+                })
 
         print("Available trainers:", scheduled_shifts_list)
     
@@ -523,3 +530,12 @@ class DBConnection:
         )
 
         cur.close()
+        return
+
+    def get_trainer_name_by_id(self, id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT first_name, last_name FROM Trainer WHERE trainer_id = %s", (id,))
+        trainer_name = cur.fetchone()[0]
+        print("trainer name is ", trainer_name)
+        cur.close()
+        return trainer_name
