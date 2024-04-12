@@ -40,7 +40,9 @@ class AdminSession:
             room_number = get_valid_int_input("Please enter the room number: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
-            self.db.book_room(room_name, room_number, fitness_class_name, start_time, end_time)
+            self.db.book_room(
+                room_name, room_number, fitness_class_name, start_time, end_time
+            )
             print("Room booked successfully")
         elif user_input == 2:
             print("Cancelling a room booking")
@@ -212,6 +214,8 @@ class MemberSession:
 
     def submit_rating_for_trainer(self):
         self.display.display_trainers()
+
+        list_of_trainer_ids = [trainer[0] for trainer in self.db.get_all_trainers()]
 
         trainer_id = -1
         while trainer_id not in list_of_trainer_ids:
