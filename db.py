@@ -440,25 +440,52 @@ class DBConnection:
         results = cur.fetchall()
         cur.close()
 
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM Trainer")
-        trainers = cur.fetchall()
-        cur.close()
-
         scheduled_shifts_list = []
         for row in results:
-            # scheduled_shifts_list.append(json.loads(row[0]))
-            scheduled_shifts = json.loads(row[0])
-            if str(weekday_num) in scheduled_shifts:
-                scheduled_shifts_list.append(
-                    {
-                        "trainer id": json.loads(str(row[0])),
-                        "trainer name": self.get_trainer_name_by_id(row[0]),
-                        "scheduled_shifts": scheduled_shifts[str(weekday_num)],
-                    }
-                )
+            #scheduled_shifts_list.append(json.loads(row[0]))
+            scheduled_shifts = json.loads(str(row[0]))
+            print("the scheduled_shifts at 0 is ", scheduled_shifts)
 
+            scheduled_shifts = json.loads(str(row[1]))
+            print("the scheduled_shifts is ", scheduled_shifts)
+            if str(weekday_num) in scheduled_shifts:
+                #scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append({
+                    "trainer_id" : json.loads(str(row[0])),
+                    "trainer name" : self.get_trainer_name_by_id(row[0]),
+                    "scheduled_shifts": scheduled_shifts[str(weekday_num)]
+                })
+
+        #now make sure there is nothing planned for that trainer on the specified days
         print("Available trainers:", scheduled_shifts_list)
+        #check when they are available for
+
+        for entry in scheduled_shifts_list:
+            cur = self.conn.cursor()
+            cur.execute("SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s", (entry["trainer_id"],))
+            results = cur.fetchall()
+            cur.close()
+
+            for times in results:
+                print("times is", times)
+                result = json.loads(str(times[0]))
+
+                for date_str in result:
+                    # Split the date string into day, month, and year
+                    print("date string is", date_str)
+                    date_str = date_str.replace(" ", "")
+                    myday, mymonth, myyear = map(int, date_str.split("/"))
+                    myyear = str(myyear)
+                    print(" day is ", myday)
+                    print(" year is ", myyear)
+
+                    #check if they are unavailable on a day they normally work
+                    print("days are ",str(myday), " and ", str(day) )
+                    print("months are ",str(mymonth), " and ", str(month) )
+                    print("year are ",str(myyear), " and ", str(year) )
+                    if int(myday) == int(day) and int(month) == int(mymonth) and int(year) == int(myyear):
+                        print("INSIDE HERE" , times["{date_str}"])
+
 
         return scheduled_shifts_list is not None
 
