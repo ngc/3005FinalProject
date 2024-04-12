@@ -114,16 +114,17 @@ class DBConnection:
 
     def remove_class(self, name, room_id, start_time, end_time):
         cur = self.conn.cursor()
-        #delete the class based on name
-        cur.execute(
-            "DELETE FROM GroupFitnessClass WHERE name = %s",
-            (name),
-        )
 
         #delete the uses
         cur.execute(
             "DELETE FROM Uses WHERE room_id = %s AND start_time = %s AND end_time = %s",
             (room_id, start_time, end_time),
+        )
+
+        #delete the class based on name
+        cur.execute(
+            "DELETE FROM GroupFitnessClass WHERE name = %s",
+            (name,),
         )
         cur.close()
 
