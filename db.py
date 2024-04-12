@@ -578,25 +578,34 @@ class DBConnection:
 
         scheduled_shifts_list = []
         for row in results:
-            # scheduled_shifts_list.append(json.loads(row[0]))
-            scheduled_shifts = json.loads(str(row[0]))
-            print("the scheduled_shifts at 0 is ", scheduled_shifts)
+
+
 
             scheduled_shifts = json.loads(str(row[1]))
             print("the scheduled_shifts is ", scheduled_shifts)
-            if str(weekday_num) in scheduled_shifts:
-                # scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
-                scheduled_shifts_list.append(
-                    {
-                        "trainer_id": json.loads(str(row[0])),
-                        "trainer name": self.get_trainer_name_by_id(row[0]),
-                        "scheduled_shifts": scheduled_shifts[str(weekday_num)],
-                    }
-                )
 
-        # now make sure there is nothing planned for that trainer on the specified days
-        print("Available trainers:", scheduled_shifts_list)
-        # check when they are available for
+
+            shifts = scheduled_shifts[str(weekday_num)]
+
+            #break shifts up to be hourly
+            hourly_shifts = []
+            for shift in shifts:
+                start_hour, end_hour = shift
+                hourly_intervals = []
+                for hour in range(start_hour, end_hour):
+                    hourly_intervals.append([hour, hour + 1])
+                hourly_shifts.extend(hourly_intervals)
+
+            if str(weekday_num) in scheduled_shifts:
+                #scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append({
+                    "trainer_id" : json.loads(str(row[0])),
+                    "trainer name" : self.get_trainer_name_by_id(row[0]),
+                    "scheduled_shifts": hourly_shifts
+                })
+
+                print("Available trainers:", scheduled_shifts_list)
+
 
         for entry in scheduled_shifts_list:
             cur = self.conn.cursor()
@@ -610,9 +619,17 @@ class DBConnection:
             for times in results:
                 print("times is", times)
                 result = json.loads(str(times[0]))
+                print("the result is ", result)
 
+                for date_str, intervals in result.items():
+                    print("Date:", date_str)
+                    print("Intervals:")
+                    for interval in intervals:
+                        start_time, end_time = interval
+                        print(f"  Start: {start_time}, End: {end_time}")
+
+                #this is the date the trainer is unavailable for
                 for date_str in result:
-                    # Split the date string into day, month, and year
                     print("date string is", date_str)
                     date_str = date_str.replace(" ", "")
                     myday, mymonth, myyear = map(int, date_str.split("/"))
@@ -620,16 +637,16 @@ class DBConnection:
                     print(" day is ", myday)
                     print(" year is ", myyear)
 
-                    # check if they are unavailable on a day they normally work
-                    print("days are ", str(myday), " and ", str(day))
-                    print("months are ", str(mymonth), " and ", str(month))
-                    print("year are ", str(myyear), " and ", str(year))
-                    if (
-                        int(myday) == int(day)
-                        and int(month) == int(mymonth)
-                        and int(year) == int(myyear)
-                    ):
-                        print("INSIDE HERE", times["{date_str}"])
+                    #check if they are unavailable on a day they normally work
+                    print("days are ",str(myday), " and ", str(day) )
+                    print("months are ",str(mymonth), " and ", str(month) )
+                    print("year are ",str(myyear), " and ", str(year) )
+                    if int(myday) == int(day) and int(month) == int(mymonth) and int(year) == int(myyear):
+                        print("INSIDE HERE",start_time, " and ", end_time)
+                        #now remove that trainers shifts from 
+
+
+
 
         return scheduled_shifts_list is not None
 
