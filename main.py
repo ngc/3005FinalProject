@@ -174,8 +174,18 @@ class MemberSession:
         print("Profile updated successfully")
 
     def submit_rating_for_trainer(self):
-        trainer_id = get_valid_int_input("Please enter the trainer id: ")
-        rating = get_valid_int_input("Please enter the rating 1-5: ")
+        trainers = self.db.get_all_trainers()
+        for trainer in trainers:
+            print(f"ID: {trainer[0]}, Name: {trainer[1]} {trainer[2]}")
+        list_of_trainer_ids = [trainer[0] for trainer in trainers]
+        
+        trainer_id = -1
+        while trainer_id not in list_of_trainer_ids:
+            trainer_id = get_valid_int_input("Please enter a trainer id: ")
+        rating = -1;
+        while rating < 1 or rating > 5:
+            rating = get_valid_int_input("Please enter the rating 1-5: ")
+
         self.db.submit_rating_for_trainer(self.user_id, trainer_id, rating)
 
         print("Rating submitted successfully")

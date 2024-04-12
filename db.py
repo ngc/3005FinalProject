@@ -512,6 +512,17 @@ class DBConnection:
         cur.close()
 
         return goals
+    
+    def get_all_trainers(self):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM Trainer"
+        )
+
+        result = cur.fetchall()
+        cur.close()
+
+        return result
 
     def add_fitness_achievement(self, user_id, achievement):
         cur = self.conn.cursor()
