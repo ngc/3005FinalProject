@@ -28,13 +28,13 @@ class AdminSession:
         print("Room booking management")
         print("1. Book a room")
         print("2. Cancel a room booking")
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Booking a room")
             fitness_class_name = input("Please enter the fitness class name: ")
             room_name = input("Please enter the room name: ")
-            room_number = input("Please enter the room number: ")
+            room_number = get_valid_int_input("Please enter the room number: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
             self.db.book_room(
@@ -43,7 +43,7 @@ class AdminSession:
             print("Room booked successfully")
         elif user_input == 2:
             print("Cancelling a room booking")
-            room_id = input("Please enter the room id: ")
+            room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
@@ -56,18 +56,18 @@ class AdminSession:
         print("Equipment maintenance monitoring")
         print("1. Report equipment issue")
         print("2. Resolve equipment issue")
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Reporting equipment issue")
-            equipment_id = input("Please enter the equipment id: ")
+            equipment_id = get_valid_int_input("Please enter the equipment id: ")
             issue = input("Please enter the issue: ")
 
             self.db.report_equipment_issue(equipment_id, issue)
             print("Equipment issue reported successfully")
         elif user_input == 2:
             print("Resolving equipment issue")
-            equipment_id = input("Please enter the equipment id: ")
+            equipment_id = get_valid_int_input("Please enter the equipment id: ")
 
             self.db.resolve_equipment_issue(equipment_id)
             print("Equipment issue resolved successfully")
@@ -78,12 +78,12 @@ class AdminSession:
         print("Class schedule updating")
         print("1. Add a class")
         print("2. Remove a class")
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Adding a class")
             name = input("Please enter the class name: ")
-            room_id = input("Please enter the room id: ")
+            room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
@@ -92,7 +92,7 @@ class AdminSession:
         elif user_input == 2:
             print("Removing a class")
             name = input("Please enter the class name: ")
-            room_id = input("Please enter the room id: ")
+            room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
@@ -107,7 +107,7 @@ class AdminSession:
         print("2. Pay a bill")
         print("3. Bill a member")
 
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
         if user_input == 1:
             print("Listing all pending bills")
             pending_bills = self.db.get_all_pending_bills()
@@ -119,14 +119,14 @@ class AdminSession:
 
         elif user_input == 2:
             print("Paying a bill")
-            bill_id = input("Please enter the bill id: ")
+            bill_id = get_valid_int_input("Please enter the bill id: ")
 
             self.db.pay_bill(bill_id)
             print("Bill paid successfully")
         elif user_input == 3:
             print("Billing a member")
             member_email = input("Please enter the member email: ")
-            amount = input("Please enter the amount: ")
+            amount = get_valid_int_input("Please enter the amount: ")
 
             self.db.bill_member(member_email, amount)
             print("Member billed successfully")
@@ -147,7 +147,7 @@ class MemberSession:
         print("3. Add new fitness goal")
         print("4. Update health metrics")
         # get user input
-        option = int(input("Please select from the following options: "))
+        option = int(get_valid_int_input("Please select from the following options: "))
         if option == 1:
             first_name = input("Please enter your first name: ")
             last_name = input("Please enter your last name: ")
@@ -158,7 +158,7 @@ class MemberSession:
             goals = self.db.get_all_fitness_goals(self.user_id)
             for goal in goals:
                 print(f"ID: {goal[0]}, Description: {goal[1]}, Time: {goal[2]}")
-            fitness_goal_id = input("Please enter the fitness goal id: ")
+            fitness_goal_id = get_valid_int_input("Please enter the fitness goal id: ")
             goal_description = input("Please enter the fitness goal description:")
             time = get_valid_int_input("Please enter the time you want to achieve it in: ")
             self.db.update_fitness_goals(fitness_goal_id, time, goal_description)
@@ -174,8 +174,8 @@ class MemberSession:
         print("Profile updated successfully")
 
     def submit_rating_for_trainer(self):
-        trainer_id = input("Please enter the trainer id: ")
-        rating = input("Please enter the rating 1-5: ")
+        trainer_id = get_valid_int_input("Please enter the trainer id: ")
+        rating = get_valid_int_input("Please enter the rating 1-5: ")
         self.db.submit_rating_for_trainer(self.user_id, trainer_id, rating)
 
         print("Rating submitted successfully")
@@ -199,7 +199,7 @@ class MemberSession:
         print("Scheduling management")
         print("1. Schedule personal training session")
         print("2. Schedule group fitness class")
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Scheduling personal training session")
@@ -218,8 +218,8 @@ class MemberSession:
 
             # print out the trainers that could train them on that day
 
-            trainer_id = input("Please enter the trainer id: ")
-            room_id = input("Please enter the room id: ")
+            trainer_id = get_valid_int_input("Please enter the trainer id: ")
+            room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
@@ -229,7 +229,7 @@ class MemberSession:
             print("Personal training session scheduled successfully")
         elif user_input == 2:
             print("Scheduling group fitness class")
-            group_fitness_class_id = input("Please enter the group fitness class id: ")
+            group_fitness_class_id = get_valid_int_input("Please enter the group fitness class id: ")
 
             self.db.schedule_group_fitness_class(self.user_id, group_fitness_class_id)
             print("Group fitness class scheduled successfully")
@@ -246,7 +246,7 @@ class TrainerSession:
         print("Scheduling management")
         print("1. Set available time")
         print("2. View member profile")
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
             print("Setting available time")
@@ -257,7 +257,7 @@ class TrainerSession:
             print("Available time set successfully")
         elif user_input == 2:
             print("Viewing member profile")
-            member_id = input("Please enter the member id: ")
+            member_id = get_valid_int_input("Please enter the member id: ")
             member = self.db.get_user_dashboard(member_id)
             print(member)
         else:
@@ -265,7 +265,7 @@ class TrainerSession:
 
     def view_member_profile(self):
         print("Viewing member profile")
-        member_id = input("Please enter the member id: ")
+        member_id = get_valid_int_input("Please enter the member id: ")
         member = self.db.get_user_dashboard(member_id)
         print(member)
 
@@ -321,7 +321,7 @@ def main(db: DBConnection):
 
     elif user_input == 3:
         print("Logging in as a trainer")
-        id = input("Please enter your trainer id: ")
+        id = get_valid_int_input("Please enter your trainer id: ")
 
         if not db.does_trainer_exist(id):
             print("Trainer does not exist")
@@ -367,7 +367,7 @@ def main(db: DBConnection):
             print("4. Submit rating for trainer")
             print("5. Logout")
 
-            user_input = int(input("Please enter a number: "))
+            user_input = int(get_valid_int_input("Please enter a number: "))
 
             if user_input > 5 or user_input < 1:
                 print("Invalid input. Please try again.")
@@ -393,7 +393,7 @@ def main(db: DBConnection):
             print("2. View Member Profile")
             print("3. Logout")
 
-            user_input = int(input("Please enter a number: "))
+            user_input = int(get_valid_int_input("Please enter a number: "))
 
             if user_input > 3 or user_input < 1:
                 print("Invalid input. Please try again.")
@@ -417,7 +417,7 @@ def main(db: DBConnection):
             print("4. Billing and Payment Processing")
             print("5. Logout")
 
-            user_input = int(input("Please enter a number: "))
+            user_input = int(get_valid_int_input("Please enter a number: "))
 
             if user_input > 5 or user_input < 1:
                 print("Invalid input. Please try again.")
