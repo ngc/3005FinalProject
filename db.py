@@ -99,7 +99,7 @@ class DBConnection:
     def resolve_equipment_issue(self, equipment_id):
         cur = self.conn.cursor()
         cur.execute(
-            "DELETE FROM Equipment WHERE equipment_id = %s",
+            "UPDATE Equipment SET issue = NULL WHERE equipment_id = %s",
             (equipment_id,),
         )
         cur.close()
@@ -203,9 +203,16 @@ class DBConnection:
         cur.close()
         print("Finished Deleting Club Database")
 
-    def does_user_exist(self, email):
+    def does_user_exist_with_email(self, email):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM Member WHERE email = %s", (email,))
+        result = cur.fetchone()
+        cur.close()
+        return result is not None
+
+    def does_user_exist_with_member_id(self, member_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Member WHERE member_id = %s", (member_id,))
         result = cur.fetchone()
         cur.close()
         return result is not None
@@ -216,6 +223,13 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result[0]
+    
+    def get_all_equipment(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Equipment")
+        result = cur.fetchall()
+        cur.close()
+        return result
 
     def register_user(self, email, first_name, last_name, age, weight, height):
         cur = self.conn.cursor()

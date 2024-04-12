@@ -60,6 +60,10 @@ class AdminSession:
 
         if user_input == 1:
             print("Reporting equipment issue")
+            #print all equipment
+            equipment = self.db.get_all_equipment()
+            for item in equipment:
+                print(f"ID: {item[0]}, Name: {item[1]}, Quality: {item[2]}, Issue: {item[3]}")
             equipment_id = get_valid_int_input("Please enter the equipment id: ")
             issue = input("Please enter the issue: ")
 
@@ -67,7 +71,19 @@ class AdminSession:
             print("Equipment issue reported successfully")
         elif user_input == 2:
             print("Resolving equipment issue")
-            equipment_id = get_valid_int_input("Please enter the equipment id: ")
+            #print all equipment
+            equipment = self.db.get_all_equipment()
+            equipment_with_issues = [item for item in equipment if item[3] != None]
+            for item in equipment_with_issues:
+                print(f"ID: {item[0]}, Name: {item[1]}, Quality: {item[2]}, Issue: {item[3]}")
+
+            if(equipment_with_issues == []):
+                print("No equipment with issues")
+                return
+            
+            equipment_id = -1
+            while equipment_id not in [item[0] for item in equipment_with_issues]:
+                equipment_id = get_valid_int_input("Please enter the equipment id: ")
 
             self.db.resolve_equipment_issue(equipment_id)
             print("Equipment issue resolved successfully")
@@ -182,7 +198,7 @@ class MemberSession:
         trainer_id = -1
         while trainer_id not in list_of_trainer_ids:
             trainer_id = get_valid_int_input("Please enter a trainer id: ")
-        rating = -1;
+        rating = -1
         while rating < 1 or rating > 5:
             rating = get_valid_int_input("Please enter the rating 1-5: ")
 
@@ -276,6 +292,9 @@ class TrainerSession:
     def view_member_profile(self):
         print("Viewing member profile")
         member_id = get_valid_int_input("Please enter the member id: ")
+        if not self.db.does_user_exist_with_member_id(member_id):
+            print("User does not exist")
+            return
         member = self.db.get_user_dashboard(member_id)
         print(member)
 
@@ -311,7 +330,7 @@ def main(db: DBConnection):
         weight = get_valid_int_input("Please enter your weight: ")
         height = get_valid_int_input("Please enter your height: ")
 
-        if db.does_user_exist(email):
+        if db.does_user_exist_with_email(email):
             print("User already exists")
             return
 
@@ -322,7 +341,7 @@ def main(db: DBConnection):
         print("Logging in as a user")
         email = input("Please enter your email: ")
 
-        if not db.does_user_exist(email):
+        if not db.does_user_exist_with_email(email):
             print("User does not exist")
             return
 
@@ -415,6 +434,7 @@ def main(db: DBConnection):
         print("Logging out")
         current_trainer = None
         return
+    
     elif current_admin:
         user_input = 0
         session = AdminSession(db)
