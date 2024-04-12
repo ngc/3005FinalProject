@@ -429,6 +429,29 @@ class DBConnection:
                 )
 
         print("Available trainers:", scheduled_shifts_list)
+        # get the TrainerShifts row for the trainer_id
+
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM TrainerShifts WHERE trainer_id = %s",
+            (1,),
+        )
+
+        result = cur.fetchone()
+        cur.close()
+
+        unavailablity = json.loads(result[1])
+
+        scheduled_shifts_list_copy = scheduled_shifts_list.copy()
+        for trainer in scheduled_shifts_list_copy:
+            for unavailable in unavailablity:
+                if unavailable["day"] == weekday_num:
+                    if (
+                        unavailable["start_time"]
+                        <= scheduled_shifts_list[trainer]["scheduled_shifts"]
+                        <= unavailable["end_time"]
+                    ):
+                        scheduled_shifts_list.remove(trainer)
 
         return scheduled_shifts_list is not None
 

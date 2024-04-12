@@ -37,7 +37,9 @@ class AdminSession:
             room_number = input("Please enter the room number: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
-            self.db.book_room(room_name, room_number, fitness_class_name, start_time, end_time)
+            self.db.book_room(
+                room_name, room_number, fitness_class_name, start_time, end_time
+            )
             print("Room booked successfully")
         elif user_input == 2:
             print("Cancelling a room booking")
