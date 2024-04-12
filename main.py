@@ -99,15 +99,37 @@ class AdminSession:
 
     def billing_and_payment_processing(self):
         print("Billing and payment processing")
-        print("1. Process payment")
-        user_input = int(input("Please enter a number: "))
+        print("1. List all pending bills")
+        print("2. Pay a bill")
+        print("3. Bill a member")
 
+        user_input = int(input("Please enter a number: "))
         if user_input == 1:
-            print("Processing payment")
-            user_id = input("Please enter the user id: ")
+            print("Listing all pending bills")
+            pending_bills = self.db.get_all_pending_bills()
+            # [(1, 1, Decimal('100'), 1, 'john.doe@gmail.com', 'John', 'Doe', 1), (2, 2, Decimal('200'), 2, 'john.lu@cmail.com', 'John', 'Lu', 2)]
+            bill_string = ""
+            for bill in pending_bills:
+                bill_string += f"Bill ID: {bill[0]}, Amount: ${bill[2]}, Member: {bill[5]} {bill[6]}\n"
+
+            print(bill_string)
+
+        elif user_input == 2:
+            print("Paying a bill")
+            bill_id = input("Please enter the bill id: ")
+
+            self.db.pay_bill(bill_id)
+            print("Bill paid successfully")
+        elif user_input == 3:
+            print("Billing a member")
+            member_email = input("Please enter the member email: ")
             amount = input("Please enter the amount: ")
 
-            print("Payment processed successfully")
+            self.db.bill_member(member_email, amount)
+            print("Member billed successfully")
+        else:
+            print("Invalid input. Please try again.")
+        print("Billing and payment processing completed")
 
 
 class MemberSession:
@@ -119,8 +141,9 @@ class MemberSession:
         print("Please select from the following options")
         print("1. Update personal information")
         print("2. Update fitness goals")
-        print("3. Update health metrics")
-        #get user input
+        print("3. Add new fitness goal")
+        print("4. Update health metrics")
+        # get user input
         option = int(input("Please select from the following options: "))
         if option == 1:
             first_name = input("Please enter your first name: ")
@@ -133,6 +156,8 @@ class MemberSession:
             time = input("Please enter the time you want to achieve it in: ")
             self.db.update_fitness_goals(fitness_goal_id, time, weight)
         elif option == 3:
+            self.add_fitness_goal()
+        elif option == 4:
             age = input("Please enter your age: ")
             weight = input("Please enter your weight: ")
             height = input("Please enter your height: ")
@@ -140,6 +165,12 @@ class MemberSession:
         else:
             print("Invalid input. Please try again.")
         print("Profile updated successfully")
+
+    def add_fitness_goal(self):
+        fitness_goal = input("Please enter the fitness goal you want to achieve: ")
+        time = input("Please enter the time in days you want to achieve it in: ")
+
+        self.db.add_fitness_goal(self.user_id, time, fitness_goal)
 
     def display_dashboard(self):
         print("Displaying dashboard")
@@ -154,22 +185,20 @@ class MemberSession:
 
         if user_input == 1:
             print("Scheduling personal training session")
-            date = input("Please enter the date you would like for your personal training session in the format DAY/MONTH/YEAR: ")
+            date = input(
+                "Please enter the date you would like for your personal training session in the format DAY/MONTH/YEAR: "
+            )
 
-            date_parts = date.split('/')
+            date_parts = date.split("/")
             day = int(date_parts[0])
             month = int(date_parts[1])
             year = int(date_parts[2])
 
             weekday = day_of_week(day, month, year)
             print(f"The date you want to book for is {weekday}")
-            date_obj = datetime.datetime(year, month, day)
-            weekday_num = date_obj.weekday() + 1
-            print(f"The weekday as a number is {weekday_num}")
-            myresult = self.db.get_trainer_by_day(day)
+            myresult = self.db.get_trainer_by_day(day, month, year)
 
-            #print out the trainers that could train them on that day
-
+            # print out the trainers that could train them on that day
 
             trainer_id = input("Please enter the trainer id: ")
             room_id = input("Please enter the room id: ")
@@ -184,9 +213,7 @@ class MemberSession:
             print("Scheduling group fitness class")
             group_fitness_class_id = input("Please enter the group fitness class id: ")
 
-            self.db.schedule_group_fitness_class(
-                self.user_id, group_fitness_class_id
-            )
+            self.db.schedule_group_fitness_class(self.user_id, group_fitness_class_id)
             print("Group fitness class scheduled successfully")
         else:
             print("Invalid input. Please try again.")
@@ -225,13 +252,7 @@ class TrainerSession:
         print(member)
 
 
-def main():
-    # Database info
-    db = DBConnection()
-    db.drop_db()
-    db.init_db()
-    db.populate_db()
-
+def main(db: DBConnection):
     current_user = None
     current_trainer = None
     current_admin = None
@@ -400,12 +421,28 @@ def main():
 
     return
 
+
 def day_of_week(day, month, year):
     date_obj = datetime.datetime(year, month, day)
     weekday_num = date_obj.weekday()
-    weekdays = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+    weekdays = [
+        "Monday",
+        "Tuesday",
+        "Wednesday",
+        "Thursday",
+        "Friday",
+        "Saturday",
+        "Sunday",
+    ]
     return weekdays[weekday_num]
 
 
 if __name__ == "__main__":
-    main()
+
+    db = DBConnection()
+    db.drop_db()
+    db.init_db()
+    db.populate_db()
+
+    while True:
+        main(db)
