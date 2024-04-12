@@ -99,7 +99,7 @@ class DBConnection:
     def resolve_equipment_issue(self, equipment_id):
         cur = self.conn.cursor()
         cur.execute(
-            "DELETE FROM Equipment WHERE equipment_id = %s",
+            "UPDATE Equipment SET issue = NULL WHERE equipment_id = %s",
             (equipment_id,),
         )
         cur.close()
@@ -203,9 +203,16 @@ class DBConnection:
         cur.close()
         print("Finished Deleting Club Database")
 
-    def does_user_exist(self, email):
+    def does_user_exist_with_email(self, email):
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM Member WHERE email = %s", (email,))
+        result = cur.fetchone()
+        cur.close()
+        return result is not None
+
+    def does_user_exist_with_member_id(self, member_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Member WHERE member_id = %s", (member_id,))
         result = cur.fetchone()
         cur.close()
         return result is not None
@@ -216,6 +223,13 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result[0]
+
+    def get_all_equipment(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Equipment")
+        result = cur.fetchall()
+        cur.close()
+        return result
 
     def register_user(self, email, first_name, last_name, age, weight, height):
         cur = self.conn.cursor()
@@ -244,11 +258,11 @@ class DBConnection:
 
         cur.close()
 
-    def update_fitness_goals(self, fitness_goal_id, weight, time):
+    def update_fitness_goals(self, fitness_goal_id, time, goal_description):
         cur = self.conn.cursor()
         cur.execute(
-            "UPDATE PersonalFitnessGoal SET weight = %s, time = %s WHERE goal_id = %s",
-            (weight, time, fitness_goal_id),
+            "UPDATE PersonalFitnessGoal SET goal_description = %s, time = %s WHERE goal_id = %s",
+            (goal_description, time, fitness_goal_id),
         )
         cur.close()
 
@@ -513,6 +527,15 @@ class DBConnection:
 
         return goals
 
+    def get_all_trainers(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Trainer")
+
+        result = cur.fetchall()
+        cur.close()
+
+        return result
+
     def add_fitness_achievement(self, user_id, achievement):
         cur = self.conn.cursor()
         cur.execute(
@@ -605,6 +628,28 @@ class DBConnection:
         print("trainer name is ", trainer_name)
         cur.close()
         return trainer_name
+
+    def does_bill_exist(self, bill_id):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM PendingBill WHERE bill_id = %s", (bill_id,))
+        result = cur.fetchone()
+        cur.close()
+        return result is not None
+
+    def pay_bill(self, bill_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "DELETE FROM PendingBill WHERE bill_id = %s",
+            (bill_id,),
+        )
+        cur.close()
+
+    def get_all_bills(self):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM PendingBill")
+        result = cur.fetchall()
+        cur.close()
+        return result
 
 
 class DisplayTable:
