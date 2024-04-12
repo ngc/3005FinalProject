@@ -43,8 +43,10 @@ class DBConnection:
 
         cur.close()
 
-    def book_room(self, room_name, room_number, fitness_class_name, start_time, end_time):
-        #insert into room
+    def book_room(
+        self, room_name, room_number, fitness_class_name, start_time, end_time
+    ):
+        # insert into room
         cur = self.conn.cursor()
         cur.execute(
             "INSERT INTO Room (room_name, room_number) VALUES (%s, %s) RETURNING room_id",
@@ -52,15 +54,15 @@ class DBConnection:
         )
 
         room_id = cur.fetchone()[0]
-       
-        #insert into fitness class with only name
+
+        # insert into fitness class with only name
         cur.execute(
             "INSERT INTO GroupFitnessClass (name) VALUES (%s) RETURNING group_fitness_class_id",
             (fitness_class_name,),
         )
         group_fitness_class_id = cur.fetchone()[0]
 
-        #insert into uses
+        # insert into uses
         cur.execute(
             "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
             (room_id, group_fitness_class_id, start_time, end_time),
@@ -125,10 +127,50 @@ class DBConnection:
         )
         cur.close()
 
+    def submit_rating_for_trainer(self, user_id, trainer_id, rating):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM TrainerRating WHERE trainer_id = %s AND submited_by = %s",
+            (trainer_id, user_id),
+        )
+
+        result = cur.fetchone()
+
+        if result is not None:
+            print("User has already submitted a rating for this trainer")
+            return
+
+        cur.execute(
+            "INSERT INTO TrainerRating (trainer_id, rating, submited_by) VALUES (%s, %s, %s)",
+            (trainer_id, rating, user_id),
+        )
+        cur.close()
+
+    def get_trainer_ratings(self, trainer_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM TrainerRating WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+        result = cur.fetchall()
+        cur.close()
+        return result
+
+    def get_average_rating_for_trainer(self, trainer_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT AVG(rating) FROM TrainerRating WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+        result = cur.fetchone()
+        cur.close()
+        return result[0]
+
     def drop_db(self):
         cur = self.conn.cursor()
         print("Starting Deleting Club Database")
         # Drop tables in reverse
+        cur.execute("DROP TABLE IF EXISTS TrainerRating")
         cur.execute("DROP TABLE IF EXISTS PendingBill")
         cur.execute("DROP TABLE IF EXISTS Employs")
         cur.execute("DROP TABLE IF EXISTS Uses")
@@ -366,26 +408,35 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result is not None
-    
+
     def get_trainer_by_day(self, day, month, year):
         cur = self.conn.cursor()
         date_obj = datetime.datetime(year, month, day)
         weekday_num = date_obj.weekday() + 1
-        cur.execute("SELECT scheduled_shifts FROM TrainerShifts")
+        cur.execute("SELECT * FROM TrainerShifts")
         results = cur.fetchall()
         cur.close()
 
-        print("weekday number is :", weekday_num)
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Trainer")
+        trainers = cur.fetchall()
+        cur.close()
 
         scheduled_shifts_list = []
         for row in results:
-            #scheduled_shifts_list.append(json.loads(row[0]))
+            # scheduled_shifts_list.append(json.loads(row[0]))
             scheduled_shifts = json.loads(row[0])
             if str(weekday_num) in scheduled_shifts:
-                scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
+                scheduled_shifts_list.append(
+                    {
+                        "trainer id": json.loads(str(row[0])),
+                        "trainer name": self.get_trainer_name_by_id(row[0]),
+                        "scheduled_shifts": scheduled_shifts[str(weekday_num)],
+                    }
+                )
 
         print("Available trainers:", scheduled_shifts_list)
-    
+
         return scheduled_shifts_list is not None
 
     def get_connection(self):
@@ -511,3 +562,14 @@ class DBConnection:
         )
 
         cur.close()
+        return
+
+    def get_trainer_name_by_id(self, id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT first_name, last_name FROM Trainer WHERE trainer_id = %s", (id,)
+        )
+        trainer_name = cur.fetchone()[0]
+        print("trainer name is ", trainer_name)
+        cur.close()
+        return trainer_name

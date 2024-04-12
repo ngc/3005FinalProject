@@ -108,7 +108,6 @@ class AdminSession:
         if user_input == 1:
             print("Listing all pending bills")
             pending_bills = self.db.get_all_pending_bills()
-            # [(1, 1, Decimal('100'), 1, 'john.doe@gmail.com', 'John', 'Doe', 1), (2, 2, Decimal('200'), 2, 'john.lu@cmail.com', 'John', 'Lu', 2)]
             bill_string = ""
             for bill in pending_bills:
                 bill_string += f"Bill ID: {bill[0]}, Amount: ${bill[2]}, Member: {bill[5]} {bill[6]}\n"
@@ -166,6 +165,17 @@ class MemberSession:
         else:
             print("Invalid input. Please try again.")
         print("Profile updated successfully")
+
+    def submit_rating_for_trainer(self):
+        trainer_id = input("Please enter the trainer id: ")
+        rating = input("Please enter the rating 1-5: ")
+        self.db.submit_rating_for_trainer(self.user_id, trainer_id, rating)
+
+        print("Rating submitted successfully")
+        print(
+            "Average rating for trainer is now: ",
+            self.db.get_average_rating_for_trainer(trainer_id),
+        )
 
     def add_fitness_goal(self):
         fitness_goal = input("Please enter the fitness goal you want to achieve: ")
@@ -346,11 +356,12 @@ def main(db: DBConnection):
             print("1. Update Profile")
             print("2. Display Dashboard")
             print("3. Schedule Management")
-            print("4. Logout")
+            print("4. Submit rating for trainer")
+            print("5. Logout")
 
             user_input = int(input("Please enter a number: "))
 
-            if user_input > 4 or user_input < 1:
+            if user_input > 5 or user_input < 1:
                 print("Invalid input. Please try again.")
             else:
                 break
@@ -361,6 +372,8 @@ def main(db: DBConnection):
             member_session.display_dashboard()
         elif user_input == 3:
             member_session.schedule_management()
+        elif user_input == 4:
+            member_session.submit_rating_for_trainer()
         else:
             print("Logging out")
             current_user = None
