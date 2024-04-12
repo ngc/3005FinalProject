@@ -154,16 +154,20 @@ class MemberSession:
             email = input("Please enter your email: ")
             self.db.update_personal_information(self, email, first_name, last_name)
         elif option == 2:
+            #show all fitness goals
+            goals = self.db.get_all_fitness_goals(self.user_id)
+            for goal in goals:
+                print(f"ID: {goal[0]}, Description: {goal[1]}, Time: {goal[2]}")
             fitness_goal_id = input("Please enter the fitness goal id: ")
-            weight = input("Please enter the weight you want to achieve: ")
-            time = input("Please enter the time you want to achieve it in: ")
-            self.db.update_fitness_goals(fitness_goal_id, time, weight)
+            goal_description = input("Please enter the fitness goal description:")
+            time = get_valid_int_input("Please enter the time you want to achieve it in: ")
+            self.db.update_fitness_goals(fitness_goal_id, time, goal_description)
         elif option == 3:
             self.add_fitness_goal()
         elif option == 4:
-            age = input("Please enter your age: ")
-            weight = input("Please enter your weight: ")
-            height = input("Please enter your height: ")
+            age = get_valid_int_input("Please enter your age: ")
+            weight = get_valid_int_input("Please enter your weight: ")
+            height = get_valid_int_input("Please enter your height: ")
             self.db.update_health_metrics(self, age, weight, height)
         else:
             print("Invalid input. Please try again.")
@@ -182,7 +186,7 @@ class MemberSession:
 
     def add_fitness_goal(self):
         fitness_goal = input("Please enter the fitness goal you want to achieve: ")
-        time = input("Please enter the time in days you want to achieve it in: ")
+        time = get_valid_int_input("Please enter the time in days you want to achieve it in: ")
 
         self.db.add_fitness_goal(self.user_id, time, fitness_goal)
 
@@ -281,7 +285,7 @@ def main(db: DBConnection):
         print("4. Login as an Administrative Staff")
         print("5. Exit")
 
-        user_input = int(input("Please enter a number: "))
+        user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input > 5 or user_input < 1:
             print("Invalid input. Please try again.")
@@ -293,9 +297,9 @@ def main(db: DBConnection):
         first_name = input("Please enter your first name: ")
         last_name = input("Please enter your last name: ")
         email = input("Please enter your email: ")
-        age = input("Please enter your age: ")
-        weight = input("Please enter your weight: ")
-        height = input("Please enter your height: ")
+        age = get_valid_int_input("Please enter your age: ")
+        weight = get_valid_int_input("Please enter your weight: ")
+        height = get_valid_int_input("Please enter your height: ")
 
         if db.does_user_exist(email):
             print("User already exists")
@@ -353,7 +357,8 @@ def main(db: DBConnection):
 
     if current_user:
         member_session = MemberSession(db, current_user)
-        while True:
+        user_input = 0
+        while user_input != 5:
             print("Welcome to the Member Dashboard")
             print("Please select from the following options:")
             print("1. Update Profile")
@@ -366,25 +371,22 @@ def main(db: DBConnection):
 
             if user_input > 5 or user_input < 1:
                 print("Invalid input. Please try again.")
-            else:
-                break
-
-        if user_input == 1:
-            member_session.update_profile()
-        elif user_input == 2:
-            member_session.display_dashboard()
-        elif user_input == 3:
-            member_session.schedule_management()
-        elif user_input == 4:
-            member_session.submit_rating_for_trainer()
-        else:
-            print("Logging out")
-            current_user = None
-            return
+            elif user_input == 1:
+                member_session.update_profile()
+            elif user_input == 2:
+                member_session.display_dashboard()
+            elif user_input == 3:
+                member_session.schedule_management()
+            elif user_input == 4:
+                member_session.submit_rating_for_trainer()
+        print("Logging out")
+        current_user = None
+        return
 
     elif current_trainer:
+        user_input = 0
         trainer_session = TrainerSession(db, current_trainer)
-        while True:
+        while user_input != 3:
             print("Welcome to the Trainer Dashboard")
             print("Please select from the following options:")
             print("1. Schedule Management")
@@ -395,20 +397,18 @@ def main(db: DBConnection):
 
             if user_input > 3 or user_input < 1:
                 print("Invalid input. Please try again.")
-            else:
-                break
 
-        if user_input == 1:
-            trainer_session.schedule_management()
-        elif user_input == 2:
-            trainer_session.view_member_profile()
-        else:
-            print("Logging out")
-            current_trainer = None
-            return
+            if user_input == 1:
+                trainer_session.schedule_management()
+            elif user_input == 2:
+                trainer_session.view_member_profile()
+        print("Logging out")
+        current_trainer = None
+        return
     elif current_admin:
+        user_input = 0
         session = AdminSession(db)
-        while True:
+        while user_input != 5:
             print("Welcome to the Admin Dashboard")
             print("Please select from the following options:")
             print("1. Room Booking Management")
@@ -421,20 +421,17 @@ def main(db: DBConnection):
 
             if user_input > 5 or user_input < 1:
                 print("Invalid input. Please try again.")
-            else:
-                break
 
-        if user_input == 1:
-            session.room_booking_management()
-        elif user_input == 2:
-            session.equipment_maintenance_monitoring()
-        elif user_input == 3:
-            session.class_schedule_updating()
-        elif user_input == 4:
-            session.billing_and_payment_processing()
-        else:
-            print("Logging out")
-            current_admin = None
+            if user_input == 1:
+                session.room_booking_management()
+            elif user_input == 2:
+                session.equipment_maintenance_monitoring()
+            elif user_input == 3:
+                session.class_schedule_updating()
+            elif user_input == 4:
+                session.billing_and_payment_processing()
+        print("Logging out")
+        current_admin = None
 
     return
 
@@ -452,6 +449,17 @@ def day_of_week(day, month, year):
         "Sunday",
     ]
     return weekdays[weekday_num]
+
+def get_valid_int_input(prompt):
+    value = "input"
+    while True:
+        value = input(prompt)
+        if value.isdigit():
+            return int(value)
+        else:
+            print("Invalid input. Please try again.")
+    
+
 
 
 if __name__ == "__main__":

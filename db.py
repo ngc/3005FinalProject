@@ -117,7 +117,7 @@ class DBConnection:
             "INSERT INTO Uses (room_id, group_fitness_class_id, start_time, end_time) VALUES (%s, %s, %s, %s)",
             (room_id, group_fitness_class_id, start_time, end_time),
         )
-        
+
         cur.close()
 
     def remove_class(self, name, room_id, start_time, end_time):
@@ -244,11 +244,11 @@ class DBConnection:
 
         cur.close()
 
-    def update_fitness_goals(self, fitness_goal_id, weight, time):
+    def update_fitness_goals(self, fitness_goal_id, time, goal_description):
         cur = self.conn.cursor()
         cur.execute(
-            "UPDATE PersonalFitnessGoal SET weight = %s, time = %s WHERE goal_id = %s",
-            (weight, time, fitness_goal_id),
+            "UPDATE PersonalFitnessGoal SET goal_description = %s, time = %s WHERE goal_id = %s",
+            (goal_description, time, fitness_goal_id),
         )
         cur.close()
 
