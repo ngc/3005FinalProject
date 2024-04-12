@@ -137,10 +137,50 @@ class DBConnection:
         )
         cur.close()
 
+    def submit_rating_for_trainer(self, user_id, trainer_id, rating):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM TrainerRating WHERE trainer_id = %s AND submited_by = %s",
+            (trainer_id, user_id),
+        )
+
+        result = cur.fetchone()
+
+        if result is not None:
+            print("User has already submitted a rating for this trainer")
+            return
+
+        cur.execute(
+            "INSERT INTO TrainerRating (trainer_id, rating, submited_by) VALUES (%s, %s, %s)",
+            (trainer_id, rating, user_id),
+        )
+        cur.close()
+
+    def get_trainer_ratings(self, trainer_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM TrainerRating WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+        result = cur.fetchall()
+        cur.close()
+        return result
+
+    def get_average_rating_for_trainer(self, trainer_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT AVG(rating) FROM TrainerRating WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+        result = cur.fetchone()
+        cur.close()
+        return result[0]
+
     def drop_db(self):
         cur = self.conn.cursor()
         print("Starting Deleting Club Database")
         # Drop tables in reverse
+        cur.execute("DROP TABLE IF EXISTS TrainerRating")
         cur.execute("DROP TABLE IF EXISTS PendingBill")
         cur.execute("DROP TABLE IF EXISTS Employs")
         cur.execute("DROP TABLE IF EXISTS Uses")
@@ -378,7 +418,7 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result is not None
-    
+
     def get_trainer_by_day(self, day, month, year):
         cur = self.conn.cursor()
         date_obj = datetime.datetime(year, month, day)
@@ -391,13 +431,13 @@ class DBConnection:
 
         scheduled_shifts_list = []
         for row in results:
-            #scheduled_shifts_list.append(json.loads(row[0]))
+            # scheduled_shifts_list.append(json.loads(row[0]))
             scheduled_shifts = json.loads(row[0])
             if str(weekday_num) in scheduled_shifts:
                 scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
 
         print("Available trainers:", scheduled_shifts_list)
-    
+
         return scheduled_shifts_list is not None
 
     def get_connection(self):
