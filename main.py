@@ -46,7 +46,11 @@ class AdminSession:
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
             self.db.book_room(
-                room_name, room_number, fitness_class_name, start_time, end_time,
+                room_name,
+                room_number,
+                fitness_class_name,
+                start_time,
+                end_time,
             )
             print("Room booked successfully")
         elif user_input == 2:
@@ -94,11 +98,13 @@ class AdminSession:
             print("Equipment issue resolved successfully")
 
         elif user_input == 3:
-            
+
             equipment_name = input("Please enter the name of the equipment: ")
             equipment_quality = input("Please enter the quality of the equipment: ")
             equipment_issues = input("Please enter any issues with the equipment : ")
-            self.db.add_new_equipment(equipment_name, equipment_quality, equipment_issues)
+            self.db.add_new_equipment(
+                equipment_name, equipment_quality, equipment_issues
+            )
             print("Equipment added successfully")
 
         elif user_input == 4:
@@ -273,11 +279,9 @@ class MemberSession:
             month = int(date_parts[1])
             year = int(date_parts[2])
 
-            weekday = day_of_week(day, month, year)
-            print(f"The date you want to book for is {weekday}")
-            myresult = self.db.get_trainer_by_day(day, month, year)
-
             # print out the trainers that could train them on that day
+
+            self.display.display_trainers()
 
             trainer_id = get_valid_int_input("Please enter the trainer id: ")
             room_id = get_valid_int_input("Please enter the room id: ")
@@ -285,7 +289,14 @@ class MemberSession:
             end_time = input("Please enter the end time: ")
 
             self.db.schedule_personal_training_session(
-                self.user_id, trainer_id, room_id, start_time, end_time
+                self.user_id,
+                trainer_id,
+                room_id,
+                day,
+                month,
+                year,
+                start_time,
+                end_time,
             )
             print("Personal training session scheduled successfully")
         elif user_input == 2:
@@ -305,7 +316,7 @@ class MemberSession:
 
 class TrainerSession:
     def __init__(self, db, trainer_id):
-        self.db = db
+        self.db: DBConnection = db
         self.trainer_id = trainer_id
         self.display = DisplayTable(db)
 
@@ -332,12 +343,7 @@ class TrainerSession:
             weekday = day_of_week(day, month, year)
             print(f"The date you want to set your unavailable time for is {weekday}")
 
-            start_time = input("Please enter the start time: ")
-            end_time = input("Please enter the end time: ")
-
-            self.db.set_unavailable_time(
-                self.trainer_id, day, month, year, start_time, end_time
-            )
+            self.db.set_unavailable_time(self.trainer_id, day, month, year)
             print("Unavailable time set successfully")
 
         elif user_input == 2:
