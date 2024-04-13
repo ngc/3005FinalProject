@@ -454,22 +454,33 @@ class DBConnection:
 
         return available_trainers
 
-    def view_trainer_schedule(self, id):
-        print("inside view trainer schedule")
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM PersonalTrainingSession JOIN Teaches ON personal_training_session_id",
-            (id,),
-        )
-        result = cur.fetchall()
-        cur.close()
+    def view_trainer_schedule(self, _id):
+        group_fitness_classes = self.get_trainer_group_fitness_classes(_id)
+        personal_training_sessions = self.get_trainer_personal_training_sessions(_id)
 
-        print("the results are:")
-        for row in result:
-            print(row)
+        formatted_schedule = "Group Fitness Classes:\n"
+        for group in group_fitness_classes:
+            room_info = self.group_fitness_class_to_string(group[0])
+            formatted_schedule += str(room_info) + "\n\n"
 
-        available_trainers = []
-        return available_trainers
+        if group_fitness_classes == []:
+            formatted_schedule += "No scheduled classes\n"
+
+        formatted_schedule += "\nPersonal Training Sessions:\n"
+        for session in personal_training_sessions:
+            room_info = self.training_session_to_string(session[0])
+            formatted_schedule += str(room_info) + "\n\n"
+
+        if personal_training_sessions == []:
+            formatted_schedule += "No scheduled classes or sessions"
+
+        if (
+            formatted_schedule
+            == "Group Fitness Classes:\n\nPersonal Training Sessions:\n"
+        ):
+            formatted_schedule = "No scheduled classes or sessions"
+
+        return formatted_schedule
 
     def room_is_available(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()
@@ -591,6 +602,30 @@ class DBConnection:
         cur.execute(
             "SELECT group_fitness_class_id, members FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE members::jsonb @> %s::jsonb",
             (json.dumps([id]),),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+        return result
+
+    def get_trainer_personal_training_sessions(self, id):
+        # join with RoomBooking to get the date and time
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession JOIN RoomBooking ON PersonalTrainingSession.booking_id = RoomBooking.booking_id WHERE trainer_id = %s",
+            (id,),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+        return result
+
+    def get_trainer_group_fitness_classes(self, id):
+        # join with RoomBooking to get the date and time
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE trainer_id = %s",
+            (id,),
         )
 
         result = cur.fetchall()

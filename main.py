@@ -356,7 +356,7 @@ class TrainerSession:
 
         elif user_input == 2:
             # view my current schedule instead
-            self.db.view_trainer_schedule(self.trainer_id)
+            print(self.db.view_trainer_schedule(self.trainer_id))
 
         else:
             print("Invalid input. Please try again.")
