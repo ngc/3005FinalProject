@@ -433,7 +433,7 @@ class DBConnection:
         cur.close()
 
         for group in result:
-            if is_overlap(start_time, end_time, group[5], group[6]):
+            if is_overlap(start_time, end_time, group[8], group[9]):
                 return False
 
         return True
@@ -567,10 +567,84 @@ class DBConnection:
     def get_user_personal_training_sessions(self, id):
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT * FROM PersonalTrainingSession JOIN Attends ON PersonalTrainingSession.personal_training_session_id = Attends.personal_training_session_id WHERE member_id = %s",
-            (id,),
+            "SELECT personal_training_session_id, members FROM PersonalTrainingSession JOIN RoomBooking ON PersonalTrainingSession.booking_id = RoomBooking.booking_id WHERE members::jsonb @> %s::jsonb",
+            (json.dumps([id]),),
         )
+
         result = cur.fetchall()
+        cur.close()
+        print(result)
+
+        return result
+
+    def get_user_group_fitness_classes(self, id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT group_fitness_class_id, members FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE members::jsonb @> %s::jsonb",
+            (json.dumps([id]),),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+        return result
+
+    def group_fitness_class_to_string(self, group_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE group_fitness_class_id = %s",
+            (group_id,),
+        )
+
+        # this is a tuple in the format of (group_fitness_class_id, booking_id, trainer_id, booking_id, room_id, month, day, year, start_time, end_time, members)
+
+        result = cur.fetchone()
+        cur.close()
+        trainer_id = result[2]
+        room_id = result[4]
+        month = result[5]
+        day = result[6]
+        year = result[7]
+        start_time = result[8]
+        end_time = result[9]
+
+        trainer_name = self.get_trainer_name_by_id(trainer_id)
+
+        result = f"Trainer: {trainer_name}\nRoom: {room_id}\nDate: {month}/{day}/{year}\nTime: {start_time} - {end_time}"
+
+        return result
+
+    def training_session_to_string(self, session_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession JOIN RoomBooking ON PersonalTrainingSession.booking_id = RoomBooking.booking_id WHERE personal_training_session_id = %s",
+            (session_id,),
+        )
+        result = cur.fetchone()
+
+        # this is a tuple in the format of (personal_training_session_id, booking_id, trainer_id, booking_id, room_id, month, day, year, start_time, end_time, members)
+        trainer_id = result[2]
+        room_id = result[4]
+        month = result[5]
+        day = result[6]
+        year = result[7]
+        start_time = result[8]
+        end_time = result[9]
+
+        trainer_name = self.get_trainer_name_by_id(trainer_id)
+
+        result = f"Trainer: {trainer_name}\nRoom: {room_id}\nDate: {month}/{day}/{year}\nTime: {start_time} - {end_time}"
+
+        cur.close()
+        return result
+
+    def group_fitness_class_to_string(self, group_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE group_fitness_class_id = %s",
+            (group_id,),
+        )
+
+        result = cur.fetchone()
         cur.close()
         return result
 
@@ -635,40 +709,16 @@ class DBConnection:
 
             formatted_user_info += f"\n\nFitness Achievement: {result[1]}"
 
-        # get personal training sessions
-        cur = self.conn.cursor()
+        formatted_user_info += "\n\nPersonal Training Sessions:\n"
 
-        cur.execute(
-            "SELECT * FROM PersonalTrainingSession JOIN Attends ON PersonalTrainingSession.personal_training_session_id = Attends.personal_training_session_id WHERE member_id = %s",
-            (id,),
-        )
+        for session in self.get_user_personal_training_sessions(id):
+            room_info = self.training_session_to_string(session[0])
+            formatted_user_info += str(room_info) + "\n\n"
 
-        result = cur.fetchall()
-        cur.close()
-
-        if result is not None:
-            formatted_user_info += "\n\nPersonal Training Sessions:"
-            for session in result:
-                formatted_user_info += f"\nRoom ID: {session[1]}"
-                formatted_user_info += f"\nStart Time: {session[2]}"
-                formatted_user_info += f"\nEnd Time: {session[3]}"
-                formatted_user_info += "\n"
-
-        # get group fitness classes
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM GroupFitnessClass JOIN Frequents ON GroupFitnessClass.group_fitness_class_id = Frequents.group_fitness_class_id WHERE member_id = %s",
-            (id,),
-        )
-
-        result = cur.fetchall()
-        cur.close()
-
-        if result is not None:
-            formatted_user_info += "\nGroup Fitness Classes:"
-            for group in result:
-                formatted_user_info += f"\nName: {group[1]}"
-                formatted_user_info += "\n"
+        formatted_user_info += "\nGroup Fitness Classes:\n"
+        for group in self.get_user_group_fitness_classes(id):
+            room_info = self.group_fitness_class_to_string(group[0])
+            formatted_user_info += str(room_info) + "\n\n"
 
         # get fitness goals
         goals = self.get_all_fitness_goals(id)
