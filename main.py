@@ -108,8 +108,10 @@ class AdminSession:
             print("Equipment added successfully")
 
         elif user_input == 4:
-           
-            equipment_id = input("Please enter the id of the equipment you would like to remove ")
+
+            equipment_id = input(
+                "Please enter the id of the equipment you would like to remove "
+            )
             self.db.remove_equipment(equipment_id)
             print("Equipment removed successfully")
 

@@ -128,7 +128,7 @@ class DBConnection:
     def add_new_equipment(self, equipment_name, quality, issue):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO Equipment (equipment_name, quality, issue) VALUES (%s, %s, %s)", 
+            "INSERT INTO Equipment (equipment_name, quality, issue) VALUES (%s, %s, %s)",
             (equipment_name, quality, issue),
         )
         cur.close()
@@ -174,7 +174,7 @@ class DBConnection:
 
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
+            "SELECT unavailable_times FROM Trainer WHERE trainer_id = %s",
             (trainer_id,),
         )
 
@@ -190,7 +190,7 @@ class DBConnection:
         unavailable_times.append(date_str)
 
         cur.execute(
-            "UPDATE TrainerShifts SET unavailable_times = %s WHERE trainer_id = %s",
+            "UPDATE Trainer SET unavailable_times = %s WHERE trainer_id = %s",
             (json.dumps(unavailable_times), trainer_id),
         )
 
@@ -383,7 +383,7 @@ class DBConnection:
         # get the trainer row
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
+            "SELECT unavailable_times FROM Trainer WHERE trainer_id = %s",
             (trainer_id,),
         )
 
@@ -931,18 +931,7 @@ class DisplayTable:
         cur.close()
 
         print("Trainer Table:")
-        print("trainer_id | first_name | last_name")
-        for row in result:
-            print(row)
-
-    def display_trainer_shifts(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM TrainerShifts")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Trainer Shifts Table:")
-        print("trainer_id | scheduled_shifts | unavailable_times")
+        print("trainer_id | first_name | last_name | unavailable_times")
         for row in result:
             print(row)
 
