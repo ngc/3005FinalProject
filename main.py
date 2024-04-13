@@ -286,6 +286,9 @@ class MemberSession:
             self.display.display_trainers()
 
             trainer_id = get_valid_int_input("Please enter the trainer id: ")
+
+            self.display.display_rooms()
+
             room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
@@ -352,10 +355,8 @@ class TrainerSession:
             print("Unavailable time set successfully")
 
         elif user_input == 2:
-           #view my current schedule instead
-           self.db.view_trainer_schedule(self.trainer_id)
-
-
+            # view my current schedule instead
+            self.db.view_trainer_schedule(self.trainer_id)
 
         else:
             print("Invalid input. Please try again.")
