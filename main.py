@@ -73,6 +73,7 @@ class AdminSession:
         print("1. Report equipment issue")
         print("2. Resolve equipment issue")
         print("3. Add new equipment")
+        print("4. Remove equipment")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
@@ -105,6 +106,12 @@ class AdminSession:
                 equipment_name, equipment_quality, equipment_issues
             )
             print("Equipment added successfully")
+
+        elif user_input == 4:
+           
+            equipment_id = input("Please enter the id of the equipment you would like to remove ")
+            self.db.remove_equipment(equipment_id)
+            print("Equipment removed successfully")
 
         else:
             print("Invalid input. Please try again.")

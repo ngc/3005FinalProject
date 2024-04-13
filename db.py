@@ -128,8 +128,16 @@ class DBConnection:
     def add_new_equipment(self, equipment_name, quality, issue):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO Equipment (equipment_name, quality, issue) VALUES (%s, %s, %s)",
+            "INSERT INTO Equipment (equipment_name, quality, issue) VALUES (%s, %s, %s)", 
             (equipment_name, quality, issue),
+        )
+        cur.close()
+
+    def remove_equipment(self, equipment_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "DELETE FROM Equipment WHERE equipment_id = %s",
+            (equipment_id,),
         )
         cur.close()
 
