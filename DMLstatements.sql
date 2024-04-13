@@ -12,7 +12,3 @@ INSERT INTO Performs (member_id, exercise_routine_id) VALUES (1, 1), (2, 2);
 INSERT INTO Has (member_id, goal_id) VALUES (1, 1), (2, 2);
 INSERT INTO Achieved (member_id, achievement_id) VALUES (1, 1), (2, 2);
 INSERT INTO PendingBill (member_id, amount) VALUES (1, 100), (2, 200);
-INSERT INTO Room (room_name, room_number) VALUES (1, 100), (2, 200);
-INSERT INTO RoomBooking (room_id, month, day , year , start_time , end_time , members) VALUES (1, 4, 13, 2024, 10, 12, '[1]');
-INSERT INTO PersonalTrainingSession (booking_id INT, trainer_id INT) VLAUES ()
-
