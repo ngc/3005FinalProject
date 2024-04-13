@@ -453,6 +453,23 @@ class DBConnection:
                 available_trainers.append(trainer)
 
         return available_trainers
+    
+    def view_trainer_schedule(self, id):
+        print("inside view trainer schedule")
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession JOIN Teaches ON personal_training_session_id",
+            (id,),
+        )
+        result = cur.fetchall()
+        cur.close() 
+
+        print("the results are:")
+        for row in result:
+            print(row)
+
+        available_trainers = []
+        return available_trainers
 
     def room_is_available(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()

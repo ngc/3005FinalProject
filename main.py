@@ -329,11 +329,9 @@ class TrainerSession:
 
     def schedule_management(self):
 
-        self.display.display_member()
-
         print("Scheduling management")
         print("1. Set unavailable time")
-        print("2. View member profile")
+        print("2. View my schedule")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
@@ -354,10 +352,11 @@ class TrainerSession:
             print("Unavailable time set successfully")
 
         elif user_input == 2:
-            print("Viewing member profile")
-            member_id = get_valid_int_input("Please enter the member id: ")
-            member = self.db.get_user_dashboard(member_id)
-            print(member)
+           #view my current schedule instead
+           self.db.view_trainer_schedule(self.trainer_id)
+
+
+
         else:
             print("Invalid input. Please try again.")
 
