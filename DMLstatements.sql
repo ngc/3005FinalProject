@@ -5,8 +5,6 @@ INSERT INTO ExerciseRoutine (repititions, sets, equipment_id) VALUES (10, 3, 1),
 INSERT INTO PersonalFitnessGoal (time, goal_description) VALUES (30, 'Run 5k'), (60, 'Lose 10 Pounds');
 INSERT INTO FitnessAchievement (achievement) VALUES ('Completed 5k Run'), ('Lost 10 Pounds');
 INSERT INTO Trainer (first_name, last_name) VALUES ('Nathan', 'Coulas'), ('Julie', 'Wechsler');
-INSERT INTO TrainerShifts (trainer_id, scheduled_shifts, unavailable_times) VALUES (1, '{"1": [[9,15]], "2": [[9,11]], "5": [[9,12]], "7": [[9,10]]}', '{"4/11/2024": [[9,10]]}'), 
-(2, '{"4": [[9,4]], "5": [[9,10],[10,11]], "7": [[9,10],[10,11]]}', '{"12/4/2024": [[9,10]], "13/4/2024": [[9,10]]}');
 INSERT INTO Room (room_name, room_number) VALUES ('Yoga Studio', 101), ('Weight Room', 102);
 -- INSERT INTO PersonalTrainingSession (room_id) VALUES (1), (2);
 -- INSERT INTO GroupFitnessClass (name) VALUES ('Yoga Class'), ('Strength Training');

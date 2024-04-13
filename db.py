@@ -161,11 +161,8 @@ class DBConnection:
         )
         cur.close()
 
-    # self.db.set_unavailable_time(
-    #     self.trainer_id, day, month, year, start_time, end_time
-    # )
-    def set_unavailable_time(self, trainer_id, day, month, year, start_time, end_time):
-        # add into trainer shifts unavailable times column
+    def set_unavailable_time(self, trainer_id, day, month, year):
+        # day off
 
         cur = self.conn.cursor()
         cur.execute(
@@ -174,25 +171,20 @@ class DBConnection:
         )
 
         unavailable_times = cur.fetchone()[0]
-
         if unavailable_times is None:
-            unavailable_times = {}
-        else:
-            unavailable_times = json.loads(unavailable_times)
+            unavailable_times = []
 
-        # this is an example of how the dictionary will look like '{"12/4/2024": [9,10], "13/4/2024": [9,10]}'
-        date = f"{day}/{month}/{year}"
-        if date in unavailable_times:
-            unavailable_times[date].append(start_time)
-            unavailable_times[date].append(end_time)
-        else:
-            unavailable_times[date] = [start_time, end_time]
+        date_str = f"{day}/{month}/{year}"
+
+        if date_str in unavailable_times:
+            return
+
+        unavailable_times.append(date_str)
 
         cur.execute(
             "UPDATE TrainerShifts SET unavailable_times = %s WHERE trainer_id = %s",
             (json.dumps(unavailable_times), trainer_id),
         )
-        cur.close()
 
     def submit_rating_for_trainer(self, user_id, trainer_id, rating):
         cur = self.conn.cursor()
@@ -380,7 +372,66 @@ class DBConnection:
         cur.close()
 
     def trainer_is_available(self, trainer_id, month, day, year, start_time, end_time):
+        # get the trainer row
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+
+        unavailable_times = cur.fetchone()[0]
+
+        if unavailable_times is None:
+            return True
+
+        date_str = f"{day}/{month}/{year}"
+        if date_str in unavailable_times:
+            return False
+
+        # check all PersonalTrainingSessions
+        cur.execute(
+            "SELECT * FROM PersonalTrainingSession JOIN RoomBooking ON PersonalTrainingSession.booking_id = RoomBooking.booking_id WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+
+        for session in result:
+            if is_overlap(start_time, end_time, session[5], session[6]):
+                return False
+
+        # check all GroupFitnessClasses
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE trainer_id = %s",
+            (trainer_id,),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+
+        for group in result:
+            if is_overlap(start_time, end_time, group[5], group[6]):
+                return False
+
         return True
+
+    def find_available_trainers(self, month, day, year, start_time, end_time):
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM Trainer")
+        result = cur.fetchall()
+        cur.close()
+
+        available_trainers = []
+
+        for trainer in result:
+            if self.trainer_is_available(
+                trainer[0], month, day, year, start_time, end_time
+            ):
+                available_trainers.append(trainer)
+
+        return available_trainers
 
     def room_is_available(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()
@@ -397,12 +448,12 @@ class DBConnection:
                 return False
         return True
 
-    def book_room(self, room_id, month, day, year, start_time, end_time, members):
+    def book_room(self, room_id, month, day, year, start_time, end_time):
         cur = self.conn.cursor()
         # return the booking id
         cur.execute(
-            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time, members) VALUES (%s, %s, %s, %s, %s, %s) RETURNING booking_id",
-            (room_id, month, day, year, start_time, end_time, NULL),
+            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time) VALUES (%s, %s, %s, %s, %s) RETURNING booking_id",
+            (room_id, month, day, year, start_time, end_time),
         )
         booking_id = cur.fetchone()[0]
         cur.close()
@@ -448,7 +499,6 @@ class DBConnection:
         self.add_member_to_room_booking(booking_id, member_id)
 
         cur = self.conn.cursor()
-        # CREATE TABLE IF NOT EXISTS PersonalTrainingSession (personal_training_session_id SERIAL PRIMARY KEY, booking_id INT, FOREIGN KEY (booking_id) REFERENCES RoomBooking(booking_id), trainer_id INT, FOREIGN KEY (trainer_id) REFERENCES Trainer(trainer_id));
         cur.execute(
             "INSERT INTO PersonalTrainingSession (booking_id, trainer_id) VALUES (%s, %s) RETURNING personal_training_session_id",
             (booking_id, trainer_id),
@@ -617,87 +667,6 @@ class DBConnection:
         result = cur.fetchone()
         cur.close()
         return result is not None
-
-    def get_trainer_by_day(self, day, month, year):
-        cur = self.conn.cursor()
-        date_obj = datetime.datetime(year, month, day)
-        weekday_num = date_obj.weekday() + 1
-        cur.execute("SELECT * FROM TrainerShifts")
-        results = cur.fetchall()
-        cur.close()
-
-        scheduled_shifts_list = []
-        for row in results:
-
-            scheduled_shifts = json.loads(str(row[1]))
-            print("the scheduled_shifts is ", scheduled_shifts)
-
-            shifts = scheduled_shifts[str(weekday_num)]
-
-            # break shifts up to be hourly
-            hourly_shifts = []
-            for shift in shifts:
-                start_hour, end_hour = shift
-                hourly_intervals = []
-                for hour in range(start_hour, end_hour):
-                    hourly_intervals.append([hour, hour + 1])
-                hourly_shifts.extend(hourly_intervals)
-
-            if str(weekday_num) in scheduled_shifts:
-                # scheduled_shifts_list.append(scheduled_shifts[str(weekday_num)])
-                scheduled_shifts_list.append(
-                    {
-                        "trainer_id": json.loads(str(row[0])),
-                        "trainer name": self.get_trainer_name_by_id(row[0]),
-                        "scheduled_shifts": hourly_shifts,
-                    }
-                )
-
-                print("Available trainers:", scheduled_shifts_list)
-
-        for entry in scheduled_shifts_list:
-            cur = self.conn.cursor()
-            cur.execute(
-                "SELECT unavailable_times FROM TrainerShifts WHERE trainer_id = %s",
-                (entry["trainer_id"],),
-            )
-            results = cur.fetchall()
-            cur.close()
-
-            for times in results:
-                print("times is", times)
-                result = json.loads(str(times[0]))
-                print("the result is ", result)
-
-                for date_str, intervals in result.items():
-                    print("Date:", date_str)
-                    print("Intervals:")
-                    for interval in intervals:
-                        start_time, end_time = interval
-                        print(f"  Start: {start_time}, End: {end_time}")
-
-                # this is the date the trainer is unavailable for
-                for date_str in result:
-                    print("date string is", date_str)
-                    date_str = date_str.replace(" ", "")
-                    myday, mymonth, myyear = map(int, date_str.split("/"))
-                    myyear = str(myyear)
-                    print(" day is ", myday)
-                    print(" year is ", myyear)
-
-                    # check if they are unavailable on a day they normally work
-                    print("days are ", str(myday), " and ", str(day))
-                    print("months are ", str(mymonth), " and ", str(month))
-                    print("year are ", str(myyear), " and ", str(year))
-                    if (
-                        int(myday) == int(day)
-                        and int(month) == int(mymonth)
-                        and int(year) == int(myyear)
-                    ):
-                        print("INSIDE HERE", start_time, " and ", end_time)
-                        # now remove that trainers shifts from
-
-        return scheduled_shifts_list is not None
 
     def get_connection(self):
         return self.conn

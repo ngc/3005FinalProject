@@ -6,7 +6,6 @@ CREATE TABLE IF NOT EXISTS PersonalFitnessGoal (goal_id SERIAL PRIMARY KEY, time
 CREATE TABLE IF NOT EXISTS FitnessAchievement (achievement_id SERIAL PRIMARY KEY, achievement VARCHAR(255));
 CREATE TABLE IF NOT EXISTS Trainer (trainer_id SERIAL PRIMARY KEY, first_name VARCHAR(255), last_name VARCHAR(255));
 
-CREATE TABLE IF NOT EXISTS TrainerShifts (trainer_id INT, scheduled_shifts TEXT, unavailable_times TEXT, FOREIGN KEY (trainer_id) REFERENCES Trainer(trainer_id));
 CREATE TABLE IF NOT EXISTS Room (room_id SERIAL PRIMARY KEY, room_name VARCHAR(255), room_number INT, unavailable_times TEXT);
 
 CREATE TABLE IF NOT EXISTS RoomBooking (booking_id SERIAL PRIMARY KEY, room_id INT, month INT, day INT, year INT, start_time TIME, end_time TIME, FOREIGN KEY (room_id) REFERENCES Room(room_id), members TEXT);
