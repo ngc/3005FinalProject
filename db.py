@@ -453,10 +453,9 @@ class DBConnection:
                 available_trainers.append(trainer)
 
         return available_trainers
-    
+
     def view_trainer_schedule(self, id):
         
-
         available_trainers = []
         return available_trainers
 
@@ -549,25 +548,14 @@ class DBConnection:
         if result is None:
             return False
 
-        # add the member to the members list
-        cur.execute(
-            "SELECT members FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
-            (group_fitness_class_id,),
-        )
+        # get the associated booking id
+        booking_id = result[2]
 
-        members = cur.fetchone()[0]
-        if members is None:
-            members = []
-        else:
-            members = json.loads(members)
-
-        members.append(member_id)
-        cur.execute(
-            "UPDATE GroupFitnessClass SET members = %s WHERE group_fitness_class_id = %s",
-            (json.dumps(members), group_fitness_class_id),
-        )
+        # add the member to the room booking
+        self.add_member_to_room_booking(booking_id, member_id)
 
         cur.close()
+
         return True
 
     def get_user_personal_training_sessions(self, id):
