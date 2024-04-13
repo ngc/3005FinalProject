@@ -460,7 +460,7 @@ class DBConnection:
         cur = self.conn.cursor()
         # return the booking id
         cur.execute(
-            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time) VALUES (%s, %s, %s, %s, %s) RETURNING booking_id",
+            "INSERT INTO RoomBooking (room_id, month, day, year, start_time, end_time) VALUES (%s, %s, %s, %s, %s, %s) RETURNING booking_id",
             (room_id, month, day, year, start_time, end_time),
         )
         booking_id = cur.fetchone()[0]
