@@ -453,7 +453,7 @@ class DBConnection:
                 available_trainers.append(trainer)
 
         return available_trainers
-    
+
     def view_trainer_schedule(self, id):
         print("inside view trainer schedule")
         cur = self.conn.cursor()
@@ -462,7 +462,7 @@ class DBConnection:
             (id,),
         )
         result = cur.fetchall()
-        cur.close() 
+        cur.close()
 
         print("the results are:")
         for row in result:
@@ -560,23 +560,15 @@ class DBConnection:
         if result is None:
             return False
 
-        # add the member to the members list
+        # add a member to the associated room booking
         cur.execute(
-            "SELECT members FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            "SELECT booking_id FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
             (group_fitness_class_id,),
         )
 
-        members = cur.fetchone()[0]
-        if members is None:
-            members = []
-        else:
-            members = json.loads(members)
+        booking_id = cur.fetchone()[0]
 
-        members.append(member_id)
-        cur.execute(
-            "UPDATE GroupFitnessClass SET members = %s WHERE group_fitness_class_id = %s",
-            (json.dumps(members), group_fitness_class_id),
-        )
+        self.add_member_to_room_booking(booking_id, member_id)
 
         cur.close()
         return True
