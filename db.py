@@ -253,25 +253,12 @@ class DBConnection:
         # Drop tables in reverse
         cur.execute("DROP TABLE IF EXISTS TrainerRating")
         cur.execute("DROP TABLE IF EXISTS PendingBill")
-        cur.execute("DROP TABLE IF EXISTS Employs")
-        cur.execute("DROP TABLE IF EXISTS Uses")
-        cur.execute("DROP TABLE IF EXISTS Frequents")
-        cur.execute("DROP TABLE IF EXISTS Attends")
-        cur.execute("DROP TABLE IF EXISTS Teaches")
-        cur.execute("DROP TABLE IF EXISTS Achieved")
-        cur.execute("DROP TABLE IF EXISTS Has")
-        cur.execute("DROP TABLE IF EXISTS Performs")
         cur.execute("DROP TABLE IF EXISTS GroupFitnessClass")
         cur.execute("DROP TABLE IF EXISTS PersonalTrainingSession")
         cur.execute("DROP TABLE IF EXISTS Room CASCADE")
-        cur.execute("DROP TABLE IF EXISTS TrainerShifts")
         cur.execute("DROP TABLE IF EXISTS Trainer")
-        cur.execute("DROP TABLE IF EXISTS FitnessAchievement")
-        cur.execute("DROP TABLE IF EXISTS PersonalFitnessGoal")
-        cur.execute("DROP TABLE IF EXISTS ExerciseRoutine")
         cur.execute("DROP TABLE IF EXISTS Equipment")
         cur.execute("DROP TABLE IF EXISTS Member")
-        cur.execute("DROP TABLE IF EXISTS Metrics")
         cur.execute("DROP TABLE IF EXISTS RoomBooking")
 
         cur.close()
@@ -326,12 +313,8 @@ class DBConnection:
     def register_user(
         self, email, first_name, last_name, age, weight, height, password
     ):
+
         cur = self.conn.cursor()
-        cur.execute(
-            "INSERT INTO Metrics (age, weight, height) VALUES (%s, %s, %s) RETURNING metric_id",
-            (age, weight, height),
-        )
-        metric_id = cur.fetchone()[0]
 
         # use bcrypt to hash the password
         salt = gensalt()
@@ -345,12 +328,11 @@ class DBConnection:
         print("HASHED PASSWORD: ", hashed_password)
 
         cur.execute(
-            "INSERT INTO Member (email, first_name, last_name, metric_id, password, salt) VALUES (%s, %s, %s, %s, %s, %s) RETURNING member_id",
+            "INSERT INTO Member (email, first_name, last_name, password, salt) VALUES (%s, %s, %s, %s, %s) RETURNING member_id",
             (
                 email,
                 first_name,
                 last_name,
-                metric_id,
                 hex_hashed_password,
                 hex_salt,
             ),
@@ -454,9 +436,8 @@ class DBConnection:
 
         return available_trainers
 
-    def view_trainer_schedule(self, _id):
-        group_fitness_classes = self.get_trainer_group_fitness_classes(_id)
-        personal_training_sessions = self.get_trainer_personal_training_sessions(_id)
+    def get_group_fitness_schedule_string_for_trainer(self, trainer_id):
+        group_fitness_classes = self.get_trainer_group_fitness_classes(trainer_id)
 
         formatted_schedule = "Group Fitness Classes:\n"
         for group in group_fitness_classes:
@@ -466,7 +447,14 @@ class DBConnection:
         if group_fitness_classes == []:
             formatted_schedule += "No scheduled classes\n"
 
-        formatted_schedule += "\nPersonal Training Sessions:\n"
+        return formatted_schedule
+
+    def get_personal_training_schedule_string_for_trainer(self, trainer_id):
+        personal_training_sessions = self.get_trainer_personal_training_sessions(
+            trainer_id
+        )
+
+        formatted_schedule = "Personal Training Sessions:\n"
         for session in personal_training_sessions:
             room_info = self.training_session_to_string(session[0])
             formatted_schedule += str(room_info) + "\n\n"
@@ -474,11 +462,14 @@ class DBConnection:
         if personal_training_sessions == []:
             formatted_schedule += "No scheduled classes or sessions"
 
-        if (
-            formatted_schedule
-            == "Group Fitness Classes:\n\nPersonal Training Sessions:\n"
-        ):
-            formatted_schedule = "No scheduled classes or sessions"
+        return formatted_schedule
+
+    def view_trainer_schedule(self, _id):
+        formatted_schedule = self.get_group_fitness_schedule_string_for_trainer(_id)
+        formatted_schedule += "\n\n"
+        formatted_schedule += self.get_personal_training_schedule_string_for_trainer(
+            _id
+        )
 
         return formatted_schedule
 
@@ -678,17 +669,6 @@ class DBConnection:
 
         result = f"Trainer: {trainer_name}\nRoom: {room_id}\nDate: {month}/{day}/{year}\nTime: {start_time} - {end_time}"
 
-        cur.close()
-        return result
-
-    def group_fitness_class_to_string(self, group_id):
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM GroupFitnessClass JOIN RoomBooking ON GroupFitnessClass.booking_id = RoomBooking.booking_id WHERE group_fitness_class_id = %s",
-            (group_id,),
-        )
-
-        result = cur.fetchone()
         cur.close()
         return result
 
@@ -965,17 +945,6 @@ class DisplayTable:
         for row in result:
             print(row)
 
-    def display_metrics(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM Metrics")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Metrics Table:")
-        print("metric_id | age | weight | height")
-        for row in result:
-            print(row)
-
     def display_member(self):
         cur = self.db.get_connection().cursor()
         cur.execute("SELECT * FROM Member")
@@ -995,39 +964,6 @@ class DisplayTable:
 
         print("Equipment:")
         print("equipment_id | equipment_name | quality | issue")
-        for row in result:
-            print(row)
-
-    def display_exercise_routines(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM ExerciseRoutine")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Exercise Routine Table:")
-        print("exercise_routine_id | repititions | sets | equipment_id")
-        for row in result:
-            print(row)
-
-    def display_personal_fitness_goals(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM PersonalFitnessGoal")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Personal Fitness Goal Table:")
-        print("goal_id | time | goal_description")
-        for row in result:
-            print(row)
-
-    def display_fitness_achievements(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM FitnessAchievement")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Fitness Achievement Table:")
-        print("achievement_id | achievement")
         for row in result:
             print(row)
 
@@ -1072,16 +1008,5 @@ class DisplayTable:
 
         print("Group Fitness Class Table:")
         print("group_fitness_class_id | name")
-        for row in result:
-            print(row)
-
-    def display_performs(self):
-        cur = self.db.get_connection().cursor()
-        cur.execute("SELECT * FROM Performs")
-        result = cur.fetchall()
-        cur.close()
-
-        print("Performs Table:")
-        print("member_id | exercise_routine_id")
         for row in result:
             print(row)
