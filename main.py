@@ -76,15 +76,18 @@ class AdminSession:
         print("4. Remove equipment")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
-        if user_input == 1:
-            print("Reporting equipment issue")
-
-            # print all equipment
+        def print_equipment():
             equipment = self.db.get_all_equipment()
             for item in equipment:
                 print(
                     f"ID: {item[0]}, Name: {item[1]}, Quality: {item[2]}, Issue: {item[3]}"
                 )
+
+        if user_input == 1:
+            print("Reporting equipment issue")
+
+            print_equipment()
+
             equipment_id = get_valid_int_input("Please enter the equipment id: ")
 
             issue = input("Please enter the issue: ")
@@ -92,12 +95,18 @@ class AdminSession:
             self.db.report_equipment_issue(equipment_id, issue)
             print("Equipment issue reported successfully")
         elif user_input == 2:
+            print("Resolving equipment issue")
+
+            print_equipment()
 
             equipment_id = input("Please enter the id of the equipment that was fixed ")
             self.db.resolve_equipment_issue(equipment_id)
             print("Equipment issue resolved successfully")
 
         elif user_input == 3:
+            print("Adding new equipment")
+
+            print_equipment()
 
             equipment_name = input("Please enter the name of the equipment: ")
             equipment_quality = input("Please enter the quality of the equipment: ")
@@ -108,6 +117,9 @@ class AdminSession:
             print("Equipment added successfully")
 
         elif user_input == 4:
+            print("Removing equipment")
+
+            print_equipment()
 
             equipment_id = input(
                 "Please enter the id of the equipment you would like to remove "
