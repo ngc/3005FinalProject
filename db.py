@@ -12,7 +12,21 @@ load_dotenv()
 
 # uses UNIX timestamp of seconds
 def is_overlap(start_time1, end_time1, start_time2, end_time2):
-    return start_time1 < end_time2 and start_time2 < end_time1
+    start_time1 = int(start_time1)
+    end_time1 = int(end_time1)
+    start_time2 = int(start_time2)
+    end_time2 = int(end_time2)
+
+    # check if the start time of the first time is between the start and end time of the second time
+    # or if the end time of the first time is between the start and end time of the second time
+    # or if the start time of the second time is between the start and end time of the first time
+    # or if the end time of the second time is between the start and end time of the first time
+    return (
+        (start_time1 >= start_time2 and start_time1 <= end_time2)
+        or (end_time1 >= start_time2 and end_time1 <= end_time2)
+        or (start_time2 >= start_time1 and start_time2 <= end_time1)
+        or (end_time2 >= start_time1 and end_time2 <= end_time1)
+    )
 
 
 class DBConnection:
@@ -389,11 +403,8 @@ class DBConnection:
 
         unavailable_times = cur.fetchone()[0]
 
-        if unavailable_times is None:
-            return True
-
         date_str = f"{day}/{month}/{year}"
-        if date_str in unavailable_times:
+        if unavailable_times is not None and date_str in unavailable_times:
             return False
 
         # check all PersonalTrainingSessions
@@ -405,8 +416,10 @@ class DBConnection:
         result = cur.fetchall()
         cur.close()
 
+        print(result)
+
         for session in result:
-            if is_overlap(start_time, end_time, session[5], session[6]):
+            if is_overlap(start_time, end_time, session[8], session[9]):
                 return False
 
         # check all GroupFitnessClasses

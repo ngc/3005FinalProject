@@ -290,7 +290,7 @@ class MemberSession:
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
 
-            self.db.schedule_personal_training_session(
+            result = self.db.schedule_personal_training_session(
                 self.user_id,
                 trainer_id,
                 room_id,
@@ -300,7 +300,12 @@ class MemberSession:
                 start_time,
                 end_time,
             )
-            print("Personal training session scheduled successfully")
+
+            if result != False:
+                print("Personal training session scheduled successfully")
+            else:
+                print("Personal training session could not be scheduled")
+
         elif user_input == 2:
             print("Join a group fitness class")
 
@@ -575,6 +580,10 @@ if __name__ == "__main__":
     db.drop_db()
     db.init_db()
     db.populate_db()
+
+    db.register_user(
+        "me@nathancoulas.com", "Nathan", "Coulas", 25, 180, 140, "password"
+    )
 
     while True:
         main(db)
