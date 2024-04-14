@@ -43,19 +43,17 @@ class DBConnection:
 
     def export_data_to_csv(self):
         cur = self.conn.cursor()
+
         tables = [
-            "Metrics",
             "Member",
             "Equipment",
-            "ExerciseRoutine",
-            "PersonalFitnessGoal",
-            "FitnessAchievement",
             "Trainer",
-            "TrainerShifts",
             "Room",
+            "RoomBooking",
             "PersonalTrainingSession",
             "GroupFitnessClass",
-            "Performs",
+            "PendingBill",
+            "TrainerRating",
         ]
 
         for table in tables:
