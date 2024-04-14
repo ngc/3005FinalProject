@@ -7,7 +7,7 @@ pip install -r requirements.txt
 ```
 
 # Setup
-
+This also assumes you've already created a database in postgres with a user who has full access to it.
 Create a `.env` file in the root directory and add the following:
 
 ```bash
