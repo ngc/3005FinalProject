@@ -327,6 +327,9 @@ class DBConnection:
         )
         cur.close()
 
+        # bill the user $30
+        self.bill_member(email, 30)
+
     def update_personal_information(self, member_session, email, first_name, last_name):
         cur = self.conn.cursor()
 
