@@ -35,28 +35,10 @@ class AdminSession:
 
     def room_booking_management(self):
         print("Room booking management")
-        print("1. Book a room")
-        print("2. Cancel a room booking")
+        print("1. Cancel a room booking")
         user_input = int(get_valid_int_input("Please enter a number: "))
 
         if user_input == 1:
-            print("Booking a room")
-            self.display.display_rooms()
-
-            fitness_class_name = input("Please enter the fitness class name: ")
-            room_name = input("Please enter the room name: ")
-            room_number = get_valid_int_input("Please enter the room number: ")
-            start_time = input("Please enter the start time: ")
-            end_time = input("Please enter the end time: ")
-            self.db.book_room(
-                room_name,
-                room_number,
-                fitness_class_name,
-                start_time,
-                end_time,
-            )
-            print("Room booked successfully")
-        elif user_input == 2:
             print("Cancelling a room booking")
 
             self.display.display_room_bookings()
@@ -122,8 +104,6 @@ class AdminSession:
         elif user_input == 4:
             print("Removing equipment")
 
-            pr
-
             equipment_id = input(
                 "Please enter the id of the equipment you would like to remove "
             )
@@ -145,17 +125,24 @@ class AdminSession:
             room_id = get_valid_int_input("Please enter the room id: ")
             start_time = input("Please enter the start time: ")
             end_time = input("Please enter the end time: ")
+            date = input(
+                "Please enter the date you would like to schedule the class in the format DAY/MONTH/YEAR: "
+            )
 
-            self.db.add_class(name, room_id, start_time, end_time)
+            date_parts = date.split("/")
+            day = int(date_parts[0])
+            month = int(date_parts[1])
+            year = int(date_parts[2])
+
+            self.db.add_class(name, room_id, month, day, year, start_time, end_time)
             print("Class added successfully")
         elif user_input == 2:
-            print("Removing a class")
-            name = input("Please enter the class name: ")
-            room_id = get_valid_int_input("Please enter the room id: ")
-            start_time = input("Please enter the start time: ")
-            end_time = input("Please enter the end time: ")
+            self.display.display_group_fitness_classes()
 
-            self.db.remove_class(name, room_id, start_time, end_time)
+            print("Removing a class")
+            class_id = get_valid_int_input("Please enter the group fitness class id: ")
+
+            self.db.remove_class(class_id)
             print("Class removed successfully")
         else:
             print("Invalid input. Please try again.")
@@ -594,7 +581,7 @@ def main(db: DBConnection):
                 trainer_session.view_member_profile()
         print("Logging out")
         current_trainer = None
-        return
+        quit()
 
     elif current_admin:
         user_input = 0

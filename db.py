@@ -91,14 +91,8 @@ class DBConnection:
         cur.close()
         return result
 
-    def cancel_room_booking(self, room_id, start_time, end_time):
+    def cancel_room_booking(self, booking_id):
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT booking_id FROM RoomBooking WHERE room_id = %s AND start_time = %s AND end_time = %s",
-            (room_id, start_time, end_time),
-        )
-
-        booking_id = cur.fetchone()[0]
 
         cur.execute(
             "DELETE FROM GroupFitnessClass WHERE booking_id = %s",
@@ -168,6 +162,27 @@ class DBConnection:
         cur.close()
 
         return group_fitness_class_id
+
+    def remove_class(self, group_fitness_class_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT booking_id FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            (group_fitness_class_id,),
+        )
+
+        booking_id = cur.fetchone()[0]
+
+        cur.execute(
+            "DELETE FROM GroupFitnessClass WHERE group_fitness_class_id = %s",
+            (group_fitness_class_id,),
+        )
+
+        cur.execute(
+            "DELETE FROM RoomBooking WHERE booking_id = %s",
+            (booking_id,),
+        )
+
+        cur.close()
 
     def set_unavailable_time(self, trainer_id, day, month, year):
         # day off
@@ -870,8 +885,9 @@ class DisplayTable:
         cur.close()
 
         print("Member Table:")
-        print("member_id | email | first_name | last_name | metric_id")
+        print("member_id | email | first_name | last_name")
         for row in result:
+            row = row[:4]
             print(row)
 
     def display_equipment(self):
