@@ -119,7 +119,7 @@ class AdminSession:
         elif user_input == 4:
             print("Removing equipment")
 
-            print_equipment()
+            pr
 
             equipment_id = input(
                 "Please enter the id of the equipment you would like to remove "
@@ -213,7 +213,8 @@ class MemberSession:
         print("1. Update personal information")
         print("2. Update fitness goals")
         print("3. Add new fitness goal")
-        print("4. Update health metrics")
+        print("4. Mark fitness goal as complete")
+        print("5. Update health metrics")
         # get user input
         option = int(get_valid_int_input("Please select from the following options: "))
         if option == 1:
@@ -235,10 +236,12 @@ class MemberSession:
         elif option == 3:
             self.add_fitness_goal()
         elif option == 4:
+            self.mark_fitness_goal_as_complete()
+        elif option == 5:
             age = get_valid_int_input("Please enter your age: ")
             weight = get_valid_int_input("Please enter your weight: ")
             height = get_valid_int_input("Please enter your height: ")
-            self.db.update_health_metrics(self, age, weight, height)
+            self.db.update_health_metrics(self.user_id, age, weight, height)
         else:
             print("Invalid input. Please try again.")
         print("Profile updated successfully")
@@ -263,6 +266,21 @@ class MemberSession:
             self.db.get_average_rating_for_trainer(trainer_id),
         )
 
+    def display_fitness_goals(self):
+        goals = self.db.get_all_fitness_goals(self.user_id)
+        print("Your fitness goals are:")
+
+        if goals == None or len(goals) == 0:
+            print("You have no fitness goals")
+            return
+
+        for index, goal in enumerate(goals):
+            print(
+                f"{index + 1}. {goal['description']} - complete by {goal['time']} - is complete: {goal['completed']}"
+            )
+
+        print("")
+
     def add_fitness_goal(self):
         fitness_goal = input("Please enter the fitness goal you want to achieve: ")
         time = get_valid_int_input(
@@ -271,10 +289,19 @@ class MemberSession:
 
         self.db.add_fitness_goal(self.user_id, time, fitness_goal)
 
+    def mark_fitness_goal_as_complete(self):
+        self.display_fitness_goals()
+        goal_id = get_valid_int_input("Please enter the goal id you want to complete: ")
+        goal_id -= 1
+
+        self.db.complete_fitness_goal(self.user_id, goal_id)
+
     def display_dashboard(self):
         print("Displaying dashboard")
         user = self.db.get_user_dashboard(self.user_id)
         print(user)
+
+        self.display_fitness_goals()
 
     def schedule_management(self):
         print("Scheduling management")
