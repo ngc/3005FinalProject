@@ -650,6 +650,8 @@ class DBConnection:
 
         formatted_user_info = f"Name: {result[2]} {result[3]}\nEmail: {result[1]}\n Age: {result[6]}\nWeight: {result[7]}\nHeight: {result[8]}"
 
+        print("Excersise Routines: ", self.get_member_exercise_routine(id))
+
         formatted_user_info += "\n\nPersonal Training Sessions:\n"
 
         for session in self.get_user_personal_training_sessions(id):
@@ -779,6 +781,24 @@ class DBConnection:
             "UPDATE Member SET fitness_goals = %s WHERE member_id = %s",
             (json.dumps(fitness_goals), member_id),
         )
+
+    def set_member_exercise_routine(self, member_id, exercise_routine):
+        cur = self.conn.cursor()
+        cur.execute(
+            "UPDATE Member SET exercise_routines = %s WHERE member_id = %s",
+            (exercise_routine, member_id),
+        )
+
+    def get_member_exercise_routine(self, member_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT exercise_routines FROM Member WHERE member_id = %s",
+            (member_id,),
+        )
+
+        result = cur.fetchone()[0]
+        cur.close()
+        return result
 
     def complete_fitness_goal(self, member_id, goal_id):
         cur = self.conn.cursor()
