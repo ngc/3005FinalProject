@@ -288,8 +288,8 @@ class DBConnection:
         if result is None:
             return False
 
-        hex_hashed_password = result[5]
-        hex_salt = result[6]
+        hex_hashed_password = result[4]
+        hex_salt = result[5]
 
         cur.close()
 
@@ -638,65 +638,17 @@ class DBConnection:
         return result
 
     def get_user_dashboard(self, id):
-        # returns a string with all the user's information
+
         cur = self.conn.cursor()
         cur.execute(
-            "SELECT email, first_name, last_name, age, weight, height FROM Member JOIN Metrics ON Member.metric_id = Metrics.metric_id WHERE member_id = %s",
+            "SELECT * FROM Member WHERE member_id = %s",
             (id,),
         )
 
         result = cur.fetchone()
         cur.close()
 
-        formatted_user_info = f"Email: {result[0]}\nFirst Name: {result[1]}\nLast Name: {result[2]}\nAge: {result[3]}\nWeight: {result[4]}\nHeight: {result[5]}"
-
-        # get metrics
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM Has WHERE member_id = %s",
-            (id,),
-        )
-
-        result = cur.fetchone()
-        cur.close()
-
-        if result is not None:
-            goal_id = result[1]
-            cur = self.conn.cursor()
-            cur.execute(
-                "SELECT * FROM PersonalFitnessGoal WHERE goal_id = %s",
-                (goal_id,),
-            )
-
-            result = cur.fetchone()
-            cur.close()
-
-            formatted_user_info += (
-                f"\n\nPersonal Fitness Goal:\nWeight: {result[1]}\nTime: {result[2]}"
-            )
-
-        # get achievements
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM Achieved WHERE member_id = %s",
-            (id,),
-        )
-
-        result = cur.fetchone()
-        cur.close()
-
-        if result is not None:
-            achievement_id = result[1]
-            cur = self.conn.cursor()
-            cur.execute(
-                "SELECT * FROM FitnessAchievement WHERE achievement_id = %s",
-                (achievement_id,),
-            )
-
-            result = cur.fetchone()
-            cur.close()
-
-            formatted_user_info += f"\n\nFitness Achievement: {result[1]}"
+        formatted_user_info = f"Name: {result[2]} {result[3]}\nEmail: {result[1]}\n Age: {result[6]}\nWeight: {result[7]}\nHeight: {result[8]}"
 
         formatted_user_info += "\n\nPersonal Training Sessions:\n"
 
@@ -709,16 +661,6 @@ class DBConnection:
             room_info = self.group_fitness_class_to_string(group[0])
             formatted_user_info += str(room_info) + "\n\n"
 
-        # get fitness goals
-        goals = self.get_all_fitness_goals(id)
-        if goals is not None:
-            formatted_user_info += "\nFitness Goals:"
-            for goal in goals:
-                formatted_user_info += f"\nGoal Description: {goal[2]}"
-                formatted_user_info += f"\nTime: {goal[1]}"
-                formatted_user_info += "\n"
-        else:
-            formatted_user_info += "\nFitness Goals: None"
         return formatted_user_info
 
     def does_trainer_exist(self, id):
@@ -794,6 +736,84 @@ class DBConnection:
         result = cur.fetchall()
         cur.close()
         return result
+
+    def update_health_metrics(self, member_id, age, weight, height):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT metric_id FROM Member WHERE member_id = %s",
+            (member_id,),
+        )
+
+        metric_id = cur.fetchone()[0]
+
+        cur.execute(
+            "UPDATE Metrics SET age = %s, weight = %s, height = %s WHERE metric_id = %s",
+            (age, weight, height, metric_id),
+        )
+
+        cur.close()
+
+    def add_fitness_goal(self, member_id, time, fitness_goal):
+        cur = self.conn.cursor()
+
+        time = datetime.datetime.now() + datetime.timedelta(days=time)
+        time = time.strftime("%Y-%m-%d")
+
+        cur.execute(
+            "SELECT fitness_goals FROM Member WHERE member_id = %s",
+            (member_id,),
+        )
+
+        fitness_goals = cur.fetchone()[0]
+
+        if fitness_goals is None:
+            fitness_goals = []
+        else:
+            fitness_goals = json.loads(fitness_goals)
+
+        fitness_goals.append(
+            {"time": time, "description": fitness_goal, "completed": False}
+        )
+
+        cur.execute(
+            "UPDATE Member SET fitness_goals = %s WHERE member_id = %s",
+            (json.dumps(fitness_goals), member_id),
+        )
+
+    def complete_fitness_goal(self, member_id, goal_id):
+        cur = self.conn.cursor()
+
+        cur.execute(
+            "SELECT fitness_goals FROM Member WHERE member_id = %s",
+            (member_id,),
+        )
+
+        fitness_goals = cur.fetchone()[0]
+
+        if fitness_goals is None:
+            return
+
+        # get the goal_idth goal
+        fitness_goals[goal_id]["completed"] = True
+
+        cur.execute(
+            "UPDATE Member SET fitness_goals = %s WHERE member_id = %s",
+            (json.dumps(fitness_goals), member_id),
+        )
+
+    def get_all_fitness_goals(self, member_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT fitness_goals FROM Member WHERE member_id = %s",
+            (member_id,),
+        )
+
+        fitness_goals = cur.fetchone()[0]
+
+        if fitness_goals is None:
+            return None
+
+        return fitness_goals
 
 
 class DisplayTable:
