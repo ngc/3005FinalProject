@@ -312,9 +312,6 @@ class DBConnection:
         hex_hashed_password = binascii.hexlify(hashed_password).decode()
         hex_salt = binascii.hexlify(salt).decode()
 
-        print("SALT: ", salt.decode())
-        print("HASHED PASSWORD: ", hashed_password)
-
         cur.execute(
             "INSERT INTO Member (email, first_name, last_name, password, salt, age, weight, height) VALUES (%s, %s, %s, %s, %s, %s, %s, %s) RETURNING member_id",
             (
@@ -362,8 +359,6 @@ class DBConnection:
 
         result = cur.fetchall()
         cur.close()
-
-        print(result)
 
         for session in result:
             if is_overlap(start_time, end_time, session[8], session[9]):
@@ -556,7 +551,6 @@ class DBConnection:
 
         result = cur.fetchall()
         cur.close()
-        print(result)
 
         return result
 
@@ -720,7 +714,6 @@ class DBConnection:
             "SELECT first_name, last_name FROM Trainer WHERE trainer_id = %s", (id,)
         )
         trainer_name = cur.fetchone()[0]
-        print("trainer name is ", trainer_name)
         cur.close()
         return trainer_name
 
