@@ -20,6 +20,9 @@ Administrative Staff Functions:
 """
 
 
+import os
+
+
 class AdminSession:
     def __init__(self, db):
         self.db: DBConnection = db
@@ -215,6 +218,7 @@ class MemberSession:
         print("3. Add new fitness goal")
         print("4. Mark fitness goal as complete")
         print("5. Update health metrics")
+        print("6. Update excercise routine")
         # get user input
         option = int(get_valid_int_input("Please select from the following options: "))
         if option == 1:
@@ -242,6 +246,8 @@ class MemberSession:
             weight = get_valid_int_input("Please enter your weight: ")
             height = get_valid_int_input("Please enter your height: ")
             self.db.update_health_metrics(self.user_id, age, weight, height)
+        elif option == 6:
+            self.update_excercise_routine()
         else:
             print("Invalid input. Please try again.")
         print("Profile updated successfully")
@@ -302,6 +308,28 @@ class MemberSession:
         print(user)
 
         self.display_fitness_goals()
+
+    def update_excercise_routine(self):
+        # excercise routine for a member is actually just a string
+        # lets make a /tmp/ file for the user to edit
+        # and then fire up the editor of choice for the user
+        # and then read the file back in
+
+        # lets just use the default editor for now
+        # and then read the file back in
+        filename = f"/tmp/{self.user_id}_excercise_routine.txt"
+        with open(filename, "w") as f:
+            f.write(self.db.get_member_exercise_routine(self.user_id))
+
+        os.system(f"nano {filename}")
+
+        with open(filename, "r") as f:
+            excercise_routine = f.read()
+
+        self.db.set_member_exercise_routine(self.user_id, excercise_routine)
+
+        # remove the file
+        os.remove(filename)
 
     def schedule_management(self):
         print("Scheduling management")
