@@ -310,13 +310,6 @@ class MemberSession:
         self.display_fitness_goals()
 
     def update_excercise_routine(self):
-        # excercise routine for a member is actually just a string
-        # lets make a /tmp/ file for the user to edit
-        # and then fire up the editor of choice for the user
-        # and then read the file back in
-
-        # lets just use the default editor for now
-        # and then read the file back in
         filename = f"/tmp/{self.user_id}_excercise_routine.txt"
         with open(filename, "w") as f:
             f.write(self.db.get_member_exercise_routine(self.user_id))
@@ -328,7 +321,6 @@ class MemberSession:
 
         self.db.set_member_exercise_routine(self.user_id, excercise_routine)
 
-        # remove the file
         os.remove(filename)
 
     def schedule_management(self):
@@ -389,6 +381,25 @@ class MemberSession:
             print("Group fitness class scheduled successfully")
         else:
             print("Invalid input. Please try again.")
+
+    def pay_a_bill(self):
+        print("Paying a bill")
+        bills = self.db.get_bills_for_member(self.user_id)
+
+        owed_amount = 0
+        for bill in bills:
+            owed_amount += bill[2]
+
+        print(f"You owe ${owed_amount}")
+
+        for bill in bills:
+            print(f"Bill ID: {bill[0]}, Amount: ${bill[2]}")
+        bill_id = get_valid_int_input("Please enter the bill id: ")
+        if self.db.does_bill_exist(bill_id):
+            self.db.pay_bill(bill_id)
+            print("Bill paid successfully")
+        else:
+            print("Bill does not exist")
 
 
 class TrainerSession:
@@ -541,11 +552,12 @@ def main(db: DBConnection):
             print("2. Display Dashboard")
             print("3. Schedule Management")
             print("4. Submit rating for trainer")
-            print("5. Logout")
+            print("5. View and pay bills")
+            print("6. Logout")
 
             user_input = int(get_valid_int_input("Please enter a number: "))
 
-            if user_input > 5 or user_input < 1:
+            if user_input > 6 or user_input < 1:
                 print("Invalid input. Please try again.")
             elif user_input == 1:
                 member_session.update_profile()
@@ -555,6 +567,8 @@ def main(db: DBConnection):
                 member_session.schedule_management()
             elif user_input == 4:
                 member_session.submit_rating_for_trainer()
+            elif user_input == 5:
+                member_session.pay_a_bill()
         print("Logging out")
         current_user = None
         return

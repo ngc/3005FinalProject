@@ -486,6 +486,13 @@ class DBConnection:
             (json.dumps(members), booking_id),
         )
 
+        # add a bill for $10 for the member
+
+        cur.execute(
+            "INSERT INTO PendingBill (member_id, amount) VALUES (%s, %s)",
+            (member_id, 10),
+        )
+
         cur.close()
 
     def schedule_personal_training_session(
@@ -834,6 +841,17 @@ class DBConnection:
             return None
 
         return fitness_goals
+
+    def get_bills_for_member(self, member_id):
+        cur = self.conn.cursor()
+        cur.execute(
+            "SELECT * FROM PendingBill WHERE member_id = %s",
+            (member_id,),
+        )
+
+        result = cur.fetchall()
+        cur.close()
+        return result
 
 
 class DisplayTable:
